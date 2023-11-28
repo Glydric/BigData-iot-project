@@ -4,12 +4,12 @@ namespace: dev
 inputs:
   - name: api_url
     type: STRING
-    defaults: tcp://bigdata-iot-project-mosquitto-1
+    defaults: tcp://mosquitto_kestra
 
 triggers:
   - id: subscribe
     type: "io.kestra.plugin.mqtt.Trigger"
-    server: "tcp://bigdata-iot-project-mosquitto-1"
+    server: "tcp://mosquitto_kestra"
     clientId: KestraTrigger
     topic: 
       - /sample.it/jz/device/#
