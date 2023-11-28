@@ -1,0 +1,22 @@
+id: stream
+namespace: dev
+
+inputs:
+  - name: api_url
+    type: STRING
+    defaults: tcp://bigdata-iot-project-mosquitto-1
+
+triggers:
+  - id: subscribe
+    type: "io.kestra.plugin.mqtt.Trigger"
+    server: "tcp://bigdata-iot-project-mosquitto-1"
+    clientId: KestraTrigger
+    topic: 
+      - /sample.it/jz/device/#
+    serdeType: JSON
+    maxRecords: 1
+
+tasks:
+  - id: logFromFile
+    type: io.kestra.core.tasks.log.Log
+    message: "{{ read(trigger.uri) }}" 
