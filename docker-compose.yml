@@ -7,8 +7,8 @@ services:
       - ./conf:/opt/app/json-data-generator/conf
     command: java -jar json-data-generator.jar simple_Simulator.json
     
-  mosquitto:
-    container_name: mosquitto_kestra
+  mosquittokestra:
+    container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
       - ./mqtt-config/:/mosquitto/config/:ro
