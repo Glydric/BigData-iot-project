@@ -6,7 +6,8 @@ services:
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
     command: java -jar json-data-generator.jar simple_Simulator.json
-  mosquittokestra:
+
+  mosquitto:
     container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
@@ -27,6 +28,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+  
   kestra:
     image: kestra/kestra:latest-full
     pull_policy: always
@@ -72,15 +74,9 @@ services:
     depends_on:
       postgres:
         condition: service_started
-  # spark:
-  #   container_name: spark
-  #   image: apache/spark:latest
-  #   ports:
-  #     - 4040:4040
-  #   command: /opt/spark/bin/spark-shell
 
   kafka:
-    name: kafka
+    container_name: kafka
     image: docker.io/bitnami/kafka:3.6
     ports:
       - "9092:9092"
@@ -97,6 +93,7 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
   mongodb:
     image: mongodb/mongodb-community-server:6.0-ubi8
     environment:

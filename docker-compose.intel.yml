@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   json-generator:
@@ -6,14 +6,14 @@ services:
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
     command: java -jar json-data-generator.jar simple_Simulator.json
- 
+
   mosquitto:
     container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
       - ./mqtt-config/:/mosquitto/config/:ro
     ports:
-      - '1883:1883'
+      - "1883:1883"
 
   postgres:
     image: postgres
@@ -28,6 +28,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+  
   kestra:
     image: kestra/kestra:latest-full
     pull_policy: always
@@ -73,19 +74,9 @@ services:
     depends_on:
       postgres:
         condition: service_started
-        
-  mongodb:
-    image: mongodb/mongodb-community-server:6.0-ubi8
-    environment:
-      - MONGODB_INITDB_ROOT_USERNAME=user
-      - MONGODB_INITDB_ROOT_PASSWORD=pass
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
 
   kafka:
-    name: kafka
+    container_name: kafka
     image: docker.io/bitnami/kafka:3.6
     ports:
       - "9092:9092"
@@ -102,6 +93,16 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
+  mongodb:
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=user
+      - MONGODB_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
 volumes:
   postgres-data:
