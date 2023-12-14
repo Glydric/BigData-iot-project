@@ -24,38 +24,38 @@
           "sn": "integer(0, 255)",
           "m": [
             {
+              "k": "device_temperature",
               "t": "nowTimestamp()",
               "tz": "now()",
-              "k": "device_temperature",
               "v": "double(0, 40)",
               "u": "C"
             },
             {
+              "k": "battery_level",
               "t": "nowTimestamp()",
               "tz": "now()",
-              "k": "battery_level",
               "v": "double(3.26, 3.56)",
               "u": "V"
             },
             {
+              "k": "rssi",
               "t": "nowTimestamp()",
               "tz": "now()",
-              "k": "rssi",
               "d": "jzp://coo#ffffffff00000500.0000",
               "v": "double(-120, 0)",
               "u": "dB"
             },
             {
+              "k": "presence",
               "t": "nowTimestamp()",
               "tz": "now()",
-              "k": "presence",
               "v": "integer(0, 1)",
               "u": ""
             },
             {
+              "k": "coordinator",
               "t": "nowTimestamp()",
               "tz": "now()",
-              "k": "coordinator",
               "d": "jzp://coo#ffffffff00000500.0000",
               "v": 1,
               "u": ""
