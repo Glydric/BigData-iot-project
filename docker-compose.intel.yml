@@ -1,4 +1,4 @@
-version: '3.9'
+version: "3.9"
 
 services:
   json-generator:
@@ -6,14 +6,14 @@ services:
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
     command: java -jar json-data-generator.jar simple_Simulator.json
- 
+
   mosquitto:
     container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
       - ./mqtt-config/:/mosquitto/config/:ro
     ports:
-      - '1883:1883'
+      - "1883:1883"
 
   postgres:
     image: postgres
@@ -28,7 +28,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
-
+  
   kestra:
     image: kestra/kestra:latest-full
     pull_policy: always
@@ -74,7 +74,26 @@ services:
     depends_on:
       postgres:
         condition: service_started
-        
+
+  kafka:
+    container_name: kafka
+    image: docker.io/bitnami/kafka:3.6
+    ports:
+      - "9092:9092"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
   mongodb:
     image: mongodb/mongodb-community-server:6.0-ubi8
     environment:
@@ -85,10 +104,12 @@ services:
     volumes:
       - mongo-data:/data/db
 
-
 volumes:
   postgres-data:
     driver: local
   kestra-data:
     driver: local
+  kafka_data:
+    driver: local
   mongo-data:
+    driver: local

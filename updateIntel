@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Input Docker Compose file
+input_file="docker-compose.yml"
+
+# Output Docker Compose file
+output_file="docker-compose.intel.yml"
+
+# Ensure the input file exists
+if [ ! -f "$input_file" ]; then
+  echo "Error: File '$input_file' not found."
+  exit 1
+fi
+
+# Process each line of the input file
+while IFS= read -r line; do
+  # Replace "-arm64v8" with an empty string in image names
+  cat $input_file | sed 's/-arm64v8//g' > $output_file                                    
+done < "$input_file"
+
+echo "Processing complete. Modified Docker Compose file saved to $output_file."
