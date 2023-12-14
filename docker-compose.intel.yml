@@ -5,8 +5,9 @@ services:
     image: massimocallisto/json-simulator:1.0.0
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
-    command: java -jar json-data-generator.jar simple_Simulator.json  
-  mosquittokestra:
+    command: java -jar json-data-generator.jar simple_Simulator.json
+ 
+  mosquitto:
     container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
@@ -72,12 +73,16 @@ services:
     depends_on:
       postgres:
         condition: service_started
-  # spark:
-  #   container_name: spark
-  #   image: apache/spark:latest
-  #   ports:
-  #     - 4040:4040
-  #   command: /opt/spark/bin/spark-shell
+        
+  mongodb:
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=user
+      - MONGODB_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
   kafka:
     name: kafka
@@ -104,4 +109,6 @@ volumes:
   kestra-data:
     driver: local
   kafka_data:
+    driver: local
+  mongo-data:
     driver: local

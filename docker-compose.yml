@@ -1,18 +1,18 @@
-version: '3.9'
+version: "3.9"
 
 services:
   json-generator:
     image: massimocallisto/json-simulator-arm64v8:1.0.0
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
-    command: java -jar json-data-generator.jar simple_Simulator.json  
+    command: java -jar json-data-generator.jar simple_Simulator.json
   mosquittokestra:
     container_name: mosquittokestra
     image: eclipse-mosquitto
     volumes:
       - ./mqtt-config/:/mosquitto/config/:ro
     ports:
-      - '1883:1883'
+      - "1883:1883"
 
   postgres:
     image: postgres
@@ -97,6 +97,15 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+  mongodb:
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    environment:
+      - MONGODB_INITDB_ROOT_USERNAME=user
+      - MONGODB_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
 
 volumes:
   postgres-data:
@@ -104,4 +113,6 @@ volumes:
   kestra-data:
     driver: local
   kafka_data:
+    driver: local
+  mongo-data:
     driver: local
