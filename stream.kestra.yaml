@@ -11,6 +11,15 @@ triggers:
     serdeType: JSON
     interval: 5
     maxRecords: 1
+    
+  - id: mongodb-insert
+    type: "io.kestra.plugin.mongodb.InsertOne"
+    connection:
+      uri: "mongodb://user:pass@bigdata-iot-project_mongodb_1:27017/"
+    database: "test"
+    collection: "mosquito_logs"
+    document: 
+      message: "{{ read(trigger.uri) }}"
 
 tasks:
   - id: raw_json_log
