@@ -1,22 +1,62 @@
 id: stream
 namespace: dev
 
-inputs:
-  - name: api_url
-    type: STRING
-    defaults: tcp://mosquitto_kestra
-
 triggers:
   - id: subscribe
-    type: "io.kestra.plugin.mqtt.Trigger"
-    server: "tcp://mosquitto_kestra"
+    type: io.kestra.plugin.mqtt.Trigger
+    server: "tcp://mosquittokestra"
     clientId: KestraTrigger
     topic: 
       - /sample.it/jz/device/#
     serdeType: JSON
+    interval: 5
     maxRecords: 1
 
 tasks:
-  - id: logFromFile
+  - id: raw_json_log
     type: io.kestra.core.tasks.log.Log
-    message: "{{ read(trigger.uri) }}" 
+    message: "{{ read(trigger.uri) }}"
+
+  # This asserts that json keys are in the form ,{key}:
+  - id: payload
+    type: io.kestra.core.tasks.debugs.Return
+    format: "{{ json(read(trigger.uri) | replace({'([{,])(\\w+):': '$1\"$2\":'}, regexp=true)).payload }}"
+
+  # - id: payload_json_log
+  #   type: io.kestra.core.tasks.log.Log
+  #   message: "{{ outputs.payload.value }}"
+  #   # message: "{{ json(outputs.payload.value).uuid }}"
+
+  # - id: json_read
+  #   type: io.kestra.plugin.serdes.json.JsonReader
+  #   from: "{{ outputs.set_state.uri }}"
+
+  - id: kafka_send
+    type: io.kestra.plugin.kafka.Produce
+    topic: test_kestra
+    from: 
+      "value": "{{ json(outputs.payload.value) }}"
+    properties:
+      bootstrap.servers: kafka:9092
+    serdeProperties:
+      schema.registry.url: http://kafka:8085
+    keySerializer: JSON
+    valueSerializer: STRING #JSON 
+
+
+  - id: messages_log
+    type: io.kestra.core.tasks.log.Log
+    message: "{{ outputs.kafka_send.messagesCount }}"
+
+
+  # - id: "kafkaSend"
+  #   type: "io.kestra.plugin.kafka.Consume"
+  #   topic: test_kestra
+  #   properties:
+  #     bootstrap.servers: kafka:9092
+  #   serdeProperties:
+  #     schema.registry.url: http://kafka:8085
+  #   keyDeserializer: STRING
+  #   valueDeserializer: AVRO
+
+
