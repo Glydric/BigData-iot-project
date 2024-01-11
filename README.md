@@ -10,5 +10,12 @@ Possible relations are
  - The production problems could be related to the voltage spikes or drops
  - Problems/productions rate
 
+## Dataset
+the dataset is formed by 
+- energy files in the form of energy/location_Tormatic_channel_{id}...csv
+- Production big file in the form of energy/Tomatic_{date}_...csv
+- Problems big file in the form of fermi/FERMATE...csv
+We firstly need to merge those files into a single file for each channel and date
+
 ## Getting Started
 We use Docker Compose to create the infrastructure
