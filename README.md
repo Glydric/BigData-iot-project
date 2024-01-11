@@ -14,8 +14,10 @@ Possible relations are
 the dataset is formed by 
 - energy files in the form of energy/location_Tormatic_channel_{id}...csv
 - Production big file in the form of energy/Tomatic_{date}_...csv
-- Problems big file in the form of fermi/FERMATE...csv
+- Problems big file in the form of fermi/FERMATE\ YYMM.csv
+    - The names are made of YY (year) and MM (month)
 We firstly need to merge those files into a single file for each channel and date
+
 
 ## Getting Started
 We use Docker Compose to create the infrastructure
