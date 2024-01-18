@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   json-generator:
+    container_name: json-generator
     image: massimocallisto/json-simulator-arm64v8:1.0.0
     volumes:
       - ./conf:/opt/app/json-data-generator/conf
@@ -16,6 +17,7 @@ services:
       - "1883:1883"
 
   postgres:
+    container_name: postgres
     image: postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -75,26 +77,34 @@ services:
       postgres:
         condition: service_started
 
-  kafka:
-    container_name: kafka
-    image: docker.io/bitnami/kafka:3.6
-    ports:
-      - "9092:9092"
-    volumes:
-      - "kafka_data:/bitnami"
+  spark:
+    container_name: spark
+    image: docker.io/bitnami/spark:3.5
     environment:
-      # KRaft settings
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-      # Listeners
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+    ports:
+      - '8082:8080'
 
+  spark-worker:
+    image: docker.io/bitnami/spark:3.5
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_USER=spark
+ 
   mongodb:
+    container_name: mongodBigData
     image: mongodb/mongodb-community-server:6.0-ubi8
     environment:
       - MONGODB_INITDB_ROOT_USERNAME=user
@@ -108,8 +118,6 @@ volumes:
   postgres-data:
     driver: local
   kestra-data:
-    driver: local
-  kafka_data:
     driver: local
   mongo-data:
     driver: local

@@ -353,7 +353,7 @@
               "tz": "now()",
               "k": "absolute_humidity",
               "v": "double(0, 0.5)",
-              "u": "kg/m³"
+              "u": "kg/m3"
             },
             {
               "t": "nowTimestamp()",
