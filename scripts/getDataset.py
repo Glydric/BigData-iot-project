@@ -2,24 +2,61 @@ import os
 import pandas as pd
 
 
-def getCleanDataset(file: str):
-    df = pd.read_csv(file, delimiter=",")
+def productionFixComma(line: str):
+    if line.count(",") == 8:
+        return line.replace(",", ".", 3).replace(".", ",", 2).replace("\n", "")
+    return line
+
+
+def getProductionWithFixedComma(name: str):
+    with open(name) as file:
+        correctedFile = [productionFixComma(line) for line in file]
+
+        head = correctedFile[0].split(",")
+
+        correctedFile.remove(correctedFile[0])
+        correctedFile.remove(correctedFile[1])
+
+        data = [line.split(",") for line in correctedFile]
+        print(head)
+        df = pd.DataFrame(data)
+        # df.columns = head
+        df.rename(columns={x: head[x] for x in range(0, len(head))}, inplace=True)
+        print(df.head())
+        return cleanDataset(df)
+
+
+def cleanDataset(df: pd.DataFrame):
+    def f(x):
+        # print(x)
+        return x.strip()
+
     for c in df.columns:
         if df[c].dtype == "object":  # if it is a string
             df[c] = df[c].str.strip()
-        df.rename(columns={c: c.strip()}, inplace=True)
+        df.rename(columns={c: f(c)}, inplace=True)
     return df
 
 
+def getCleanDataset(file: str):
+    df = pd.read_csv(file, delimiter=",")
+    return cleanDataset(df)
+
+
 # Get the stops
-def getFermate(id: str, year: int, month: int):
+def getFermate(id: str, year: str, month: str, day: str):
     base_dir = "dataset/fermi/Fermate"
 
     df = getCleanDataset(f"{base_dir}/FERMATE {year}{month}.csv")
     # this automatically handles the "0101" -> "101" conversion as df["RESOURCE"].dtypes is int64
     # print(df["RESOURCE"].dtypes)
     data = df[df["RESOURCE"] == int(id)]
-    print(data.head())
+
+    # for d in data["SHIFT_DATE"]:
+    #     print(day)
+    #     print(d.startswith(f"{day}"))
+
+    data = data[data["SHIFT_DATE"].str.startswith(f"{day}")]  # TODO testme
 
     if data.empty:
         raise Exception("Data not found")
@@ -41,8 +78,9 @@ def getProductions(id: str, year: str, month: str, day: str):
     for f in os.listdir(f"{base_dir}"):
         if not f.startswith(f"Tormatic_20{year}{month}{day}"):
             continue
+        print(f"{base_dir}/{f}")
 
-        df = getCleanDataset(f"{base_dir}/{f}")
+        df = getProductionWithFixedComma(f"{base_dir}/{f}")
 
         if "COD_PART" in df.columns:
             df = df[df["COD_PART"] == id]
@@ -54,6 +92,7 @@ def getProductions(id: str, year: str, month: str, day: str):
             print(df.head())
             raise Exception("Data not found - COD_ART or COD_PART not found")
 
+        print(df.head())
         # We don't need to remove the followings as the filter already does it
         # data.drop(data.tail(1).index, inplace=True)
         # data.drop(0, inplace=True)
@@ -86,17 +125,13 @@ def getEnergy(id: str, year: str, month: str, day: str):
 
 
 def getEntireDataset(id: int, year: str, month: str, day: str):
-    try:
-        fermate = getFermate(id, year, month)
-        productions = getProductions(id, year, month, day)
-        energy = getEnergy(id, year, month, day)
-        return pd.concat([energy, productions, fermate])
-    except Exception as e:
-        print(e)
-        return None
-    except e:
-        print(e)
-        return None
+    fermate = getFermate(id, year, month, day)
+    print(fermate.head())
+    productions = getProductions(id, year, month, day)
+    print(productions.empty)
+    energy = getEnergy(id, year, month, day)
+    print(energy.empty)
+    return pd.concat([energy, productions, fermate])
 
 
 if __name__ == "__main__":
@@ -112,6 +147,11 @@ if __name__ == "__main__":
     # print("energy\n")
     # print(energy.head())
 
-    allData = getEntireDataset("108", "22", "11", "05")
-    print("allDataset\n")
-    print(allData.head())
+    allData = getEntireDataset("301", "23", "05", "30")
+    try:
+        print("allDataset\n")
+        print(allData.head())
+    except Exception as e:
+        print(e)
+    except e:
+        print(e)
