@@ -41,13 +41,6 @@ def getProductionWithFixedComma(name: str):
         return cleanDataset(df)
 
 
-def customResampler(df: pd.DataFrame):
-    print(df.head())
-    if df.dtypes == "object":
-        return df.to_numpy()
-    return np.sum(df)
-
-
 # Get the stops
 def getFermate(id: str, year: str, month: str, day: str):
     base_dir = "dataset/fermi/Fermate"
