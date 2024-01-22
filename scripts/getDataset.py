@@ -88,7 +88,7 @@ def getFermate(id: str, year: str, month: str, day: str):
 
     df.loc[idx_dup, "TIMESTAMP"] = df.loc[idx_dup, "TIMESTAMP"].apply(f)
 
-    print((df["SHIFT_CODE"] == 0).all())  # TODO checkWhy
+    # print((df["SHIFT_CODE"] == 0).all())  # TODO checkWhy
 
     return df
 
@@ -106,27 +106,70 @@ def getProductions(id: str, year: str, month: str, day: str):
 
         df = getProductionWithFixedComma(f"{base_dir}/{f}")
 
-        if "COD_PART" in df.columns:
-            df = df[df["COD_PART"] == id]
-            df.drop("COD_PART", axis=1, inplace=True)
-        elif "COD_ART" in df.columns:
-            df = df[df["COD_ART"] == id]
-            df.drop("COD_ART", axis=1, inplace=True)
-        else:
-            print(df.head())
-            raise Exception("Data not found - COD_ART or COD_PART not found")
+        df.drop(0, inplace=True)
 
-        # print(df.head())
-        # We don't need to remove the followings as the filter already does it
-        # data.drop(data.tail(1).index, inplace=True)
-        # data.drop(0, inplace=True)
+        df["COD_MACC"] = pd.to_numeric(df["COD_MACC"])
+        df.dropna(inplace=True)
+        df = df.astype({"COD_MACC": "int32"})
+
+        df = df[df["COD_MACC"] == int(id)]
+
         dataset = pd.concat([dataset, df], ignore_index=True)
 
     if dataset.empty:
         print("WARNING, Productions was Empty")
 
-    # dataset = dataset.resample("15T", on="TIMESTAMP_INIZIO").sum()  # FIXME
-    # print(dataset.head())
+    # FIXME when converting the datetime the first row is NaT, this make shift the entire dataset and gives wrong results
+    dataset["TIMESTAMP_INIZIO"] = pd.to_datetime(df["TIMESTAMP_INIZIO"])
+    dataset["TIMESTAMP_FINE"] = pd.to_datetime(df["TIMESTAMP_FINE"])
+
+    avg = dataset[["TIMESTAMP_INIZIO", "TIMESTAMP_FINE"]].mean(axis=1)
+
+    dataset["TIMESTAMP"] = avg
+
+    dataset.drop(["TIMESTAMP_INIZIO", "TIMESTAMP_FINE"], axis=1, inplace=True)
+
+    dataset.dropna(inplace=True)
+
+    # with pd.option_context(
+    #     "display.max_rows", None, "display.max_columns", None
+    # ):  # more options can be specified also
+    #     print(dataset)
+
+    def f(x: pd.Series):
+        head = x.head(1)
+
+        dfsum = 0
+        for i in x["NUMERO_PEZZI_PROD"]:
+            dfsum += float(i)
+        head["NUMERO_PEZZI_PROD"] = dfsum
+
+        # TODO remove following test LOGS
+        if "5542100" in x["ID"]:
+            print(x)
+        if dfsum == 131.0:
+            print(x)
+        if 131.0 in x["NUMERO_PEZZI_PROD"].values:
+            print(x)
+
+        return head
+
+    print(dataset.head())
+    grouper = pd.Grouper(key="TIMESTAMP", freq="15T")
+    dataset = dataset.groupby(grouper).apply(f)
+    print(dataset.head())
+
+    # FIXME the timestamp is not correct, some times it gives a minute less, some time a 1:30 h less
+    # example ID 5542100 have a timestamp of 08:54:00 but in group function we get 06:24:00
+    # FIXME the ID is shifted different times
+    # print(dataset[dataset["ID"].str.startswith("527253")].head())
+    print(
+        dataset[
+            dataset["TIMESTAMP"].dt.strftime("%Y-%m-%d %H:%M") == "2023-03-13 08:45"
+        ].head()
+    )
+    dataset.drop("ID", axis=1, inplace=True)
+
     # DatetimeIndex, TimedeltaIndex or PeriodIndex
 
     return dataset
@@ -182,7 +225,7 @@ if __name__ == "__main__":
     # print("energy\n")
     # print(energy.head())
 
-    allData = getEntireDataset("301", "23", "05", "30")
+    allData = getEntireDataset("0105", "23", "05", "30")
     try:
         print("allDataset\n")
         print(allData.head())
