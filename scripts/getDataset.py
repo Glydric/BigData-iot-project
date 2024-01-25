@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 
 def productionFixComma(line: str):
@@ -227,6 +228,49 @@ def getEntireDataset(id: int, year: str, month: str, day: str):
     # return pd.merge(merge1, energy, on="TIMESTAMP", how="outer")
     return dataset
 
+def getAvailableMachines():
+    """ This gets the machine ids that have an energy file. Then for each ID it creates a disct with the years 
+    it spans and for each of them a set with the months. The format is like
+    {
+        '108': {
+            '2022': (7, 8, 9, 10),
+            '2023': (1,,2, 3, 4, 7, 8, 9, 10)
+        },
+        '302': {
+            '2022': (7, 8, 9, 10),
+            '2023': (1,,2, 3, 4, 7, 8, 9, 10)
+        }
+    }
+    """
+    base_dir = "dataset/energy"
+    idsList = set()
+    date_format = '%Y-%m-%dT%H-%M-%SZ'
+    machines = {}
+
+    for f in os.listdir(base_dir):
+        if ("location_Tormatic" in f):
+            splitedFilename = f.split("_")
+            machineId = splitedFilename[2].split("-")[0]
+            
+            date = datetime.strptime(splitedFilename[5], date_format)
+            year = date.year
+            month = date.month
+
+            if machineId in machines.keys():
+                if year in machines[machineId].keys():
+                    machines[machineId][year].add(month)
+                else:
+                    machines[machineId][year] = set([month])
+                
+            else:
+                machines[machineId] = {
+                    year: set([month]),
+                }
+
+            idsList.add(machineId)
+
+    return machines
+
 
 if __name__ == "__main__":
     # productions = getProductions("211", "21", "12", "17")
@@ -241,9 +285,18 @@ if __name__ == "__main__":
     # print("energy\n")
     # print(energy.head())
 
-    pd.set_option("display.max_rows", None)
+    """
+    machines = getAvailableMachines()
 
-    completeDataset = getEntireDataset("0105", "23", "05", "30")
+    for machineId in machines:
+        for year in machines[machineId].keys():
+            for month in machines[machineId][year]:
+                completeDataset = getEntireDataset(machineId, year, month) 
+    """
+
+
+    pd.set_option("display.max_rows", None)
+    
     try:
         print("Entire Dataset\n")
         # completeDataset = completeDataset.dropna()
