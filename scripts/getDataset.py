@@ -1,5 +1,4 @@
 import os
-import numpy as np
 import pandas as pd
 
 
@@ -182,50 +181,57 @@ def prepareEnergy(dataset: pd.DataFrame):
 # Get the energy consumption values
 def getEnergy(id: str, year: str, month: str, day: str):
     base_dir = "dataset/energy"
+    file = "location_Tormatic-channel_{}-register_Ea_Imp_20{}-{}-{}"
 
-    dataset = pd.DataFrame()
+    dfs = []
 
     for f in os.listdir(f"{base_dir}"):
-        if not f.startswith(
-            f"location_Tormatic-channel_{id}-register_Ea_Imp_20{year}-{month}-{day}"
-        ):
-            continue
+        if f.startswith(file.format(int(id), year, month, day)):
+            dfs.append(getCleanDataset(f"{base_dir}/{f}"))
 
-        df = getCleanDataset(f"{base_dir}/{f}")
+    if dfs == []:
+        return pd.DataFrame()
 
-        dataset = pd.concat([dataset, df], ignore_index=True)
+    dataset = pd.concat(dfs, ignore_index=True)
 
     if dataset.empty:
         return dataset
     return prepareEnergy(dataset)
 
 
+def mergeDataset(dfs: [pd.DataFrame]):
+    dataset = pd.DataFrame()
+
+    dfs = [df for df in dfs if not df.empty]
+
+    for df in dfs:
+        df["TIMESTAMP"] = df["TIMESTAMP"].dt.round("15min")
+
+        if dataset.empty:
+            dataset = df
+        else:
+            assert dataset["TIMESTAMP"].dtype == df["TIMESTAMP"].dtype
+
+            dataset = dataset.merge(df, on="TIMESTAMP", how="outer")
+
+    return dataset
+
+
 def getEntireDataset(id: int, year: str, month: str, day: str):
     fermate = getFermate(id, year, month, day)
     productions = getProductions(id, year, month, day)
     energy = getEnergy(id, year, month, day)
-    # energy = getEnergy("108", "22", "08", "10")
-
-    dataset = pd.DataFrame(columns=["TIMESTAMP"])
+    # energy = getEnergy("310", "22", "08", "24")
 
     if fermate.empty:
         print("WARNING, Fermate was Empty")
-    else:
-        dataset = dataset.merge(fermate, on="TIMESTAMP", how="outer")
-
     if productions.empty:
         print("WARNING, Productions was Empty")
-    else:
-        dataset = dataset.merge(productions, on="TIMESTAMP", how="outer")
-
     if energy.empty:
         print("WARNING, Energy was Empty")
-    else:
-        dataset = dataset.merge(energy, on="TIMESTAMP", how="outer")
-
     # merge1 = pd.merge(fermate, productions, on="TIMESTAMP", how="outer")
     # return pd.merge(merge1, energy, on="TIMESTAMP", how="outer")
-    return dataset
+    return mergeDataset([fermate, productions, energy])
 
 
 if __name__ == "__main__":
@@ -241,13 +247,21 @@ if __name__ == "__main__":
     # print("energy\n")
     # print(energy.head())
 
+    # pd.merge(fermate, productions, on="TIMESTAMP", how="outer")
     pd.set_option("display.max_rows", None)
 
-    completeDataset = getEntireDataset("0105", "23", "05", "30")
+    # completeDataset = getEntireDataset("0105", "23", "05", "30")
+    completeDataset = getEntireDataset("0301", "22", "11", "24")
     try:
-        print("Entire Dataset\n")
+        print("\n----- Entire Dataset ------\n")
         # completeDataset = completeDataset.dropna()
-        print(completeDataset)
+        completeDataset["TIMESTAMP"] = completeDataset["TIMESTAMP"].dt.strftime(
+            "%Y-%m-%d %H:%M"
+        )
+        # count = completeDataset[completeDataset.groupby("TIMESTAMP").count() > 1]
+        # print(count)
+
+        print(completeDataset.head())
     except Exception as e:
         print(e)
     except e:
