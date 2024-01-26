@@ -3,15 +3,18 @@ import pandas as pd
 from datetime import datetime
 
 
-def productionFixComma(line: str):
-    if line.count(",") == 8:
-        return line.replace(",", ".", 3).replace(".", ",", 2).replace("\n", "")
-    return line
+def productionFixComma(line: str, columns: int):
+    newline = line.replace("\n", "")
+
+    if line.count(",") == columns:
+        newline = newline.replace(",", ".", 3).replace(".", ",", 2)
+
+    return newline
 
 
 def cleanDataset(df: pd.DataFrame):
-    def f(x):
-        # print(x)
+    def f(x: str):
+        # print(df.columns)
         return x.strip()
 
     for c in df.columns:
@@ -28,16 +31,20 @@ def getCleanDataset(file: str):
 
 def getProductionWithFixedComma(name: str):
     with open(name) as file:
-        correctedFile = [productionFixComma(line) for line in file]
+        lines = file.readlines()
 
-        head = correctedFile[0].split(",")
+        head = lines[0].split(",")
+
+        correctedFile = [productionFixComma(line, len(head)) for line in lines]
 
         correctedFile.remove(correctedFile[0])
         correctedFile.remove(correctedFile[1])
 
-        data = [line.split(",") for line in correctedFile]
-        df = pd.DataFrame(data)
+        lines_data = [line.split(",") for line in correctedFile]
+
+        df = pd.DataFrame(lines_data)
         df.rename(columns={x: head[x] for x in range(0, len(head))}, inplace=True)
+
         return cleanDataset(df)
 
 
@@ -70,20 +77,20 @@ def prepareFermate(dataset: pd.DataFrame):
 
     dataset.loc[idx_dup, "TIMESTAMP"] = dataset.loc[idx_dup, "TIMESTAMP"].apply(f)
 
-    # print((df["SHIFT_CODE"] == 0).all())  # TODO checkWhy
+    assert (dataset["SHIFT_CODE"] == 0).all()  # TODO checkWhy
 
     return dataset
 
 
 # Get the stops
-def getFermate(id: str, year: str, month: str, day: str):
+def getFermate(id: str, year: str, month: str):
     base_dir = "dataset/fermi/Fermate"
 
     dataset = getCleanDataset(f"{base_dir}/FERMATE {year}{month}.csv")
     # this automatically handles the "0101" -> "101" conversion as df["RESOURCE"].dtypes is int64
     dataset = dataset[dataset["RESOURCE"] == int(id)]
 
-    dataset = dataset[dataset["SHIFT_DATE"].str.startswith(f"{day}")]  # TODO testme
+    # dataset = dataset[dataset["SHIFT_DATE"].str.startswith(f"{day}")]  # TODO testme
 
     if dataset.empty:
         raise Exception("Data not found")
@@ -125,11 +132,10 @@ def prepareProductions(dataset: pd.DataFrame):
 
     # print(dataset[dataset["ID"].str.startswith("5542100")].head())
 
-    grouper = pd.Grouper(key="TIMESTAMP", freq="15T")
-    dataset = dataset.groupby(grouper).apply(f)
+    grouper = pd.Grouper(key="TIMESTAMP", freq="15min")
+    dataset = dataset.groupby(grouper).apply(f, include_groups=False)
 
     # Grouper used TIMESTAMP as index, here we convert to column
-    dataset.drop("TIMESTAMP", axis=1, inplace=True)
     dataset = dataset.reset_index()
 
     dataset.drop("ID", axis=1, inplace=True)
@@ -138,13 +144,13 @@ def prepareProductions(dataset: pd.DataFrame):
 
 
 # Get the productions
-def getProductions(id: str, year: str, month: str, day: str):
+def getProductions(id: str, year: str, month: str):
     base_dir = "dataset/productions"
 
     dataset = pd.DataFrame()
 
     for f in os.listdir(f"{base_dir}"):
-        if not f.startswith(f"Tormatic_20{year}{month}{day}"):
+        if not f.startswith(f"Tormatic_20{year}{month}"):
             continue
         # print(f"{base_dir}/{f}")
 
@@ -176,18 +182,20 @@ def prepareEnergy(dataset: pd.DataFrame):
 
     dataset.drop(["id"], axis=1, inplace=True)
 
+    dataset.rename({"Ea_Imp": "EnergyConsumption"}, axis=1, inplace=True)
+
     return dataset
 
 
 # Get the energy consumption values
-def getEnergy(id: str, year: str, month: str, day: str):
+def getEnergy(id: str, year: str, month: str):
     base_dir = "dataset/energy"
-    file = "location_Tormatic-channel_{}-register_Ea_Imp_20{}-{}-{}"
+    file = "location_Tormatic-channel_{}-register_Ea_Imp_20{}-{}-"
 
     dfs = []
 
     for f in os.listdir(f"{base_dir}"):
-        if f.startswith(file.format(int(id), year, month, day)):
+        if f.startswith(file.format(int(id), year, month)):
             dfs.append(getCleanDataset(f"{base_dir}/{f}"))
 
     if dfs == []:
@@ -218,10 +226,10 @@ def mergeDataset(dfs: [pd.DataFrame]):
     return dataset
 
 
-def getEntireDataset(id: int, year: str, month: str, day: str):
-    fermate = getFermate(id, year, month, day)
-    productions = getProductions(id, year, month, day)
-    energy = getEnergy(id, year, month, day)
+def getEntireDataset(id: int, year: str, month: str):
+    fermate = getFermate(id, year, month)
+    productions = getProductions(id, year, month)
+    energy = getEnergy(id, year, month)
     # energy = getEnergy("310", "22", "08", "24")
 
     if fermate.empty:
@@ -241,11 +249,11 @@ def getAvailableMachines():
     {
         '108': {
             '2022': (7, 8, 9, 10),
-            '2023': (1,,2, 3, 4, 7, 8, 9, 10)
+            '2023': (1, 2, 3, 4, 7, 8, 9, 10)
         },
         '302': {
             '2022': (7, 8, 9, 10),
-            '2023': (1,,2, 3, 4, 7, 8, 9, 10)
+            '2023': (1, 2, 3, 4, 7, 8, 9, 10)
         }
     }
     """
@@ -280,41 +288,22 @@ def getAvailableMachines():
 
 
 if __name__ == "__main__":
-    # productions = getProductions("211", "21", "12", "17")
-    # print("prod\n")
-    # print(productions.head())
-
-    # fermate = getFermate("618", "22", "11")
-    # print("fermate\n")
-    # print(fermate.head())
-
-    # energy = getEnergy("618", "22", "11", "04")
-    # print("energy\n")
-    # print(energy.head())
-
-    # pd.merge(fermate, productions, on="TIMESTAMP", how="outer")
     pd.set_option("display.max_rows", None)
 
-    # completeDataset = getEntireDataset("0105", "23", "05", "30")
-    completeDataset = getEntireDataset("0301", "22", "11", "24")
-    """
-    machines = getAvailableMachines()
+    # completeDataset = getEntireDataset("0105", "23", "05")
+    completeDataset = getEntireDataset("0301", "22", "11")
 
-    for machineId in machines:
-        for year in machines[machineId].keys():
-            for month in machines[machineId][year]:
-                completeDataset = getEntireDataset(machineId, year, month) 
-    """
+    # machines = getAvailableMachines()
+
+    # for machineId in machines:
+    #     for year in machines[machineId].keys():
+    #         for month in machines[machineId][year]:
+    #             completeDataset = getEntireDataset(machineId, year, month)
 
     try:
         print("\n----- Entire Dataset ------\n")
-        # completeDataset = completeDataset.dropna()
-        completeDataset["TIMESTAMP"] = completeDataset["TIMESTAMP"].dt.strftime(
-            "%Y-%m-%d %H:%M"
-        )
-        # count = completeDataset[completeDataset.groupby("TIMESTAMP").count() > 1]
-        # print(count)
-
+        
+        completeDataset = completeDataset.dropna()
         print(completeDataset.head())
     except Exception as e:
         print(e)
