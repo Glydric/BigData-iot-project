@@ -326,5 +326,6 @@ if __name__ == "__main__":
         # assert (completeDataset["QTY_SCRAP"] == 0).all()
 
         print(completeDataset.head())
+        print(completeDataset.shape)
     except Exception as e:
         print(e)
