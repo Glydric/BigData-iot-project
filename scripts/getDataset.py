@@ -328,5 +328,3 @@ if __name__ == "__main__":
         print(completeDataset.head())
     except Exception as e:
         print(e)
-    except e:
-        print(e)
