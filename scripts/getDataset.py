@@ -77,8 +77,6 @@ def prepareFermate(dataset: pd.DataFrame):
 
     dataset.loc[idx_dup, "TIMESTAMP"] = dataset.loc[idx_dup, "TIMESTAMP"].apply(f)
 
-    assert (dataset["SHIFT_CODE"] == 0).all()  # TODO checkWhy
-
     return dataset
 
 
@@ -289,8 +287,10 @@ def getAvailableMachines():
 
 if __name__ == "__main__":
     pd.set_option("display.max_rows", None)
+    pd.options.mode.copy_on_write = True
 
     # completeDataset = getEntireDataset("0105", "23", "05")
+    id = "0301"
     completeDataset = getEntireDataset("0301", "22", "11")
 
     # machines = getAvailableMachines()
@@ -301,9 +301,30 @@ if __name__ == "__main__":
     #             completeDataset = getEntireDataset(machineId, year, month)
 
     try:
-        print("\n----- Entire Dataset ------\n")
-        
+        print(f"\n----- Entire Dataset {id} ------\n")
         completeDataset = completeDataset.dropna()
+
+        if (completeDataset["COD_MACC"] == 301).all():
+            completeDataset.drop("COD_MACC", axis=1, inplace=True)
+
+        # TODO check why the following data is always the same
+        if (completeDataset["SHIFT_CODE"] == 0).all():
+            completeDataset.drop("SHIFT_CODE", axis=1, inplace=True)
+
+        if (completeDataset["STAGE"] == 10).all():
+            completeDataset.drop("STAGE", axis=1, inplace=True)
+
+        if (completeDataset["STOP_CODE"] == 2).all():
+            completeDataset.drop("STOP_CODE", axis=1, inplace=True)
+
+        if (completeDataset["QTY_SCRAP"] == 0).all():
+            completeDataset.drop("QTY_SCRAP", axis=1, inplace=True)
+
+        if (completeDataset["QTY_GOOD"] == 0).all():
+            completeDataset.drop("QTY_GOOD", axis=1, inplace=True)
+
+        # assert (completeDataset["QTY_SCRAP"] == 0).all()
+
         print(completeDataset.head())
     except Exception as e:
         print(e)
