@@ -60,6 +60,46 @@ def prepareFermate(dataset: pd.DataFrame):
         inplace=True,
     )
 
+    # TODO check why the following data is always the same
+    if dataset["SHIFT_CODE"].diff(0).all():
+        print("WARNING, you are dropping SHIFT_CODE that is not always the same")
+        print(dataset["SHIFT_CODE"])
+
+    if (dataset["STAGE"] != 10).all():
+        print("WARNING, you are dropping STAGE that is not always the same")
+        print(dataset["STAGE"])
+
+    if (dataset["STOP_CODE"] != 2).all():
+        print("WARNING, you are dropping STOP_CODE that is not always the same")
+        print(dataset["STOP_CODE"])
+
+    if (dataset["QTY_SCRAP"] != 0).all():
+        print("WARNING, you are dropping QTY_SCRAP that is not always the same")
+        print(dataset["QTY_SCRAP"])
+
+    if (dataset["QTY_GOOD"] != 0).all():
+        print("WARNING, you are dropping QTY_GOOD that is not always the same")
+        print(dataset["QTY_GOOD"])
+
+    dataset = dataset.groupby(["TIMESTAMP"]).count().reset_index()
+
+    # we choose SHIFT_CODE but it can be any column
+    dataset.rename(columns={"SHIFT_CODE": "Fermate"}, inplace=True)
+
+    dataset.drop(
+        [
+            "PRODUCTION_ORDER",
+            "STAGE",
+            "STOP_CODE",
+            "T_STOP",
+            "QTY_GOOD",
+            "QTY_SCRAP",
+            "DESFERM",
+        ],
+        axis=1,
+        inplace=True,
+    )
+
     return dataset
 
 
@@ -103,16 +143,6 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
         head["NUMERO_PEZZI_PROD"] = x["NUMERO_PEZZI_PROD"].sum()
 
-        # LOGS
-        # if (
-        #     x["TIMESTAMP"]
-        #     .dt.strftime("%Y-%m-%d %H")
-        #     .str.startswith("2023-03-31 08")
-        #     .any()
-        # ):
-        #     print(x)
-        #     print(head["NUMERO_PEZZI_PROD"])
-
         return head
 
     grouper = pd.Grouper(key="TIMESTAMP", freq="1D")
@@ -123,6 +153,10 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
     dataset.drop("ID", axis=1, inplace=True)
 
+    if dataset["EXP_STATUS"].eq("0").all():
+        dataset.drop("EXP_STATUS", axis=1, inplace=True)
+
+    dataset.rename({"NUMERO_PEZZI_PROD": "Productions"}, axis=1, inplace=True)
     return dataset
 
 
@@ -145,6 +179,8 @@ def getProductions(id: str, year: str, month: str):
         df = df.astype({"COD_MACC": "int32"})
 
         df = df[df["COD_MACC"] == int(id)]
+
+        df.drop(["COD_MACC"], axis=1, inplace=True)
 
         dfs.append(df)
 
@@ -232,11 +268,10 @@ def getEntireDataset(id: int, year: str, month: str):
     fermate = getFermate(id, year, month)
     productions = getProductions(id, year, month)
     energy = getEnergy(id, year, month)
-    # energy = getEnergy("310", "22", "08", "24")
 
-    if fermate.empty:  # FIXME fix date
+    if fermate.empty:
         print("WARNING, Fermate was Empty")
-    if productions.empty:  # FIXME fix date
+    if productions.empty:
         print("WARNING, Productions was Empty")
     if energy.empty:
         print("WARNING, Energy was Empty")
@@ -245,9 +280,6 @@ def getEntireDataset(id: int, year: str, month: str):
     assert "TIMESTAMP" in productions.columns
     assert "TIMESTAMP" in energy.columns
 
-    # print(fermate.dropna())
-    # print(productions.dropna())
-    # print(energy.dropna())
     return mergeDataset([fermate, productions, energy])
 
 
@@ -299,9 +331,9 @@ if __name__ == "__main__":
     pd.set_option("display.max_rows", None)
     pd.options.mode.copy_on_write = True
 
-    # completeDataset = getEntireDataset("0105", "23", "05")
     id = "0301"
-    completeDataset = getEntireDataset("0301", "23", "05")
+    # completeDataset = getEntireDataset("0105", "23", "05")
+    completeDataset = getEntireDataset(id, "23", "05")
 
     # machines = getAvailableMachines()
 
@@ -313,28 +345,12 @@ if __name__ == "__main__":
     # print(getFermate(id, "22", "11"))
     try:
         print(f"\n----- Entire Dataset {id} ------\n")
-        completeDataset = completeDataset.dropna()
-
-        if (completeDataset["COD_MACC"] == 301).all():
-            completeDataset.drop("COD_MACC", axis=1, inplace=True)
-
-        # TODO check why the following data is always the same
-        if (completeDataset["SHIFT_CODE"] == 0).all():
-            completeDataset.drop("SHIFT_CODE", axis=1, inplace=True)
-
-        if (completeDataset["STAGE"] == 10).all():
-            completeDataset.drop("STAGE", axis=1, inplace=True)
-
-        if (completeDataset["STOP_CODE"] == 2).all():
-            completeDataset.drop("STOP_CODE", axis=1, inplace=True)
-
-        if (completeDataset["QTY_SCRAP"] == 0).all():
-            completeDataset.drop("QTY_SCRAP", axis=1, inplace=True)
-
-        if (completeDataset["QTY_GOOD"] == 0).all():
-            completeDataset.drop("QTY_GOOD", axis=1, inplace=True)
-
-        # assert (completeDataset["QTY_SCRAP"] == 0).all()
+        # this is to remove a strange column that is created on grouping
+        completeDataset.drop(["level_1"], axis=1, inplace=True)
+        # TODO review those drops
+        # completeDataset = completeDataset.dropna()
+        completeDataset.drop(["ODP"], axis=1, inplace=True)
+        completeDataset.drop(["COD_ART"], axis=1, inplace=True)
 
         print(completeDataset)
         print(completeDataset.shape)
