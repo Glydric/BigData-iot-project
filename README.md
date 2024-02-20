@@ -27,7 +27,6 @@ We use Docker Compose to create the infrastructure
 
 # TODO
 
-- Aggiungere il filtro per i fermi
 - Aggiungere il tipo di prodotto all'interno del dataset
 - (opzionale) Aggiungere il tipo di materiale
  - Generare un dataset che contiene l'articolo e il materiale
