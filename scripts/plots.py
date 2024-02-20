@@ -19,9 +19,55 @@ print(times.head())
 print(energy.head()) """
 
 
-def plot(df, id: int = None):
+def trace(fig: go.Figure, values, art: str, color: str):
+    fig.add_trace(
+        go.Scatter(
+            name="Energy " + art,
+            x=values["TIMESTAMP"],
+            y=values["EnergyConsumption"],
+            text=values["EnergyConsumption"],
+            marker=dict(size=10, color=color),
+            mode="markers+lines",
+        ),
+        col=1,
+        row=1,
+    )
 
-    times = df["TIMESTAMP"]
+    fig.add_trace(
+        go.Scatter(
+            name="Productions " + art,
+            x=values["TIMESTAMP"],
+            y=values["Productions"],
+            text=values["Productions"],
+            marker=dict(size=10, color=color),
+            mode="markers+lines",
+        ),
+        col=1,
+        row=2,
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            name="Stops " + art,
+            x=values["TIMESTAMP"],
+            y=values["Fermate"],
+            text=values["DESFERM"],
+            marker=dict(size=10, color=color),
+        ),
+        col=1,
+        row=3,
+    )
+
+
+def plot(df, id: int = None):
+    colors = [
+        "blue",
+        "green",
+        "#FF0000",
+        "#00FFFF",
+        "#FFFF00",
+        "#880000",
+    ]
 
     fig = make_subplots(
         rows=3,
@@ -34,45 +80,11 @@ def plot(df, id: int = None):
     text = f"Dataset macchine {id}" if id else "Dataset"
     fig.update_layout(height=800, width=1280, title_text=text)
 
-    fig.add_trace(
-        go.Scatter(
-            x=times,
-            y=df["EnergyConsumption"],
-            name="Energy Consumption",
-            text=df["EnergyConsumption"],
+    for art in df["COD_ART"].unique():
+        color = "black" if art == "Unknown" else colors.pop(0)
+        values = df[df["COD_ART"] == art]
 
-            marker=dict(size=10, color="blue"),
-            mode="markers+lines",
-        ),
-        col=1,
-        row=1,
-    )
-
-    fig.add_trace(
-        go.Scatter(
-            x=times,
-            y=df["Productions"],
-            name="Productions",
-            text=df["Productions"],
-
-            marker=dict(size=10, color="green"),
-            mode="markers+lines",
-        ),
-        col=1,
-        row=2,
-    )
-
-    fig.add_trace(
-        go.Bar(
-            x=times,
-            y=df["Fermate"],
-            name="Fermate",
-            marker=dict(color="red"),
-            text=df["DESFERM"],
-        ),
-        col=1,
-        row=3,
-    )
+        trace(fig, values, art, color)
 
     fig.show()
 

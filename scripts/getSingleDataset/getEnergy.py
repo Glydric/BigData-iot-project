@@ -10,27 +10,15 @@ def prepareEnergy(dataset: pd.DataFrame):
         lambda x: x.replace("T", " ").replace("Z", "")
     )
     dataset["TIMESTAMP"] = pd.to_datetime(dataset["TIMESTAMP"])
+    dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("D").dt.to_timestamp()
 
     dataset.drop(["id"], axis=1, inplace=True)
 
-    def f(x: pd.Series):
-        head = x.head(1)
-
-        # warning A value is trying to be set on a copy of a slice from a DataFrame.
-        # Try using .loc[row_indexer,col_indexer] = value instead
-        head["Ea_Imp"] = x["Ea_Imp"].sum()
-
-        return head
-
-    # day group
-    grouper = pd.Grouper(key="TIMESTAMP", freq="1D")
-    dataset = dataset.groupby(grouper).apply(f, include_groups=False)
+    dataset = dataset.groupby(["TIMESTAMP"]).sum(numeric_only=True).reset_index()
 
     dataset = dataset.reset_index()
 
     dataset.rename({"Ea_Imp": "EnergyConsumption"}, axis=1, inplace=True)
-
-    dataset.drop(["level_1"], axis=1, inplace=True)
 
     return dataset
 

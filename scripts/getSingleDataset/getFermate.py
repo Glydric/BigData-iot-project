@@ -29,23 +29,23 @@ def prepareFermate(dataset: pd.DataFrame):
     # TODO check why the following data is always the same
     if dataset["SHIFT_CODE"].diff(0).all():
         print("WARNING, you are dropping SHIFT_CODE that is not always the same")
-        print(dataset["SHIFT_CODE"])
+        print(dataset["SHIFT_CODE"].unique())
 
     if (dataset["STAGE"] != 10).all():
         print("WARNING, you are dropping STAGE that is not always the same")
-        print(dataset["STAGE"])
+        print(dataset["STAGE"].unique())
 
     if (dataset["STOP_CODE"] != 2).all():
         print("WARNING, you are dropping STOP_CODE that is not always the same")
-        print(dataset["STOP_CODE"])
+        print(dataset["STOP_CODE"].unique())
 
     if (dataset["QTY_SCRAP"] != 0).all():
         print("WARNING, you are dropping QTY_SCRAP that is not always the same")
-        print(dataset["QTY_SCRAP"])
+        print(dataset["QTY_SCRAP"].unique())
 
     if (dataset["QTY_GOOD"] != 0).all():
         print("WARNING, you are dropping QTY_GOOD that is not always the same")
-        print(dataset["QTY_GOOD"])
+        print(dataset["QTY_GOOD"].unique())
 
     dataset = dataset.groupby(["TIMESTAMP", "DESFERM"]).count().reset_index()
 
@@ -81,7 +81,6 @@ def getFermate(id: str, year: str, month: str):
 
         # this automatically handles the "0101" -> "101" conversion as df["RESOURCE"].dtypes is int64
         df = df[df["RESOURCE"] == int(id)]
-
         # remove the resource column as it is the id we are already filtered it
         df.drop("RESOURCE", axis=1, inplace=True)
 

@@ -20,6 +20,9 @@ def mergeDataset(dfs: list[pd.DataFrame]):
             dataset = dataset.merge(df, on="TIMESTAMP", how="outer")
 
     # completeDataset = completeDataset.dropna()
+    dataset["COD_ART"] = dataset["COD_ART"].fillna("Unknown")
+    dataset["DESFERM"] = dataset["DESFERM"].fillna("Unknown")
+    # dataset["COD_ART"] = dataset.loc[:, ("COD_ART")].astype(str)
 
     return dataset
 
@@ -83,3 +86,12 @@ def getEntireDataset(id: int, year_int: int, month_int: int):
         assert "TIMESTAMP" in energy.columns
 
     return mergeDataset([fermate, productions, energy])
+
+
+def forEveryMachine(fn):
+    machines = getAvailableMachines()
+
+    for machineId in machines:
+        for year in machines[machineId].keys():
+            for month in machines[machineId][year]:
+                fn(machineId, year, month)

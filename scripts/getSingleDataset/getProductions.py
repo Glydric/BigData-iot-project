@@ -29,7 +29,6 @@ def getProductionWithFixedComma(name: str):
         df = pd.DataFrame(lines_data)
         df.rename(columns={x: head[x] for x in range(0, len(head))}, inplace=True)
 
-        # print(datetime.now() - previous)
         return cleanDataset(df)
 
 
@@ -50,7 +49,6 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
     if "ODP" in dataset.columns:
         dataset.drop(["ODP"], axis=1, inplace=True)
-
 
     dataset = (
         dataset.groupby(["TIMESTAMP", "COD_ART"]).sum(numeric_only=True).reset_index()
@@ -78,9 +76,6 @@ def getProductions(id: str, year: str, month: str):
 
         df.dropna(inplace=True)
         df.drop(0, inplace=True)
-
-        # print(df.loc[[210]])
-        # print(f)
 
         df["COD_MACC"] = pd.to_numeric(df["COD_MACC"])
 
