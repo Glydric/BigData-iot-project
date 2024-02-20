@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from .utils import cleanDataset
 
+
 def productionFixComma(line: str, columns: int):
     newline = line.replace("\n", "")
 
@@ -39,38 +40,26 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
     dataset["TIMESTAMP"] = dataset[["TIMESTAMP_INIZIO", "TIMESTAMP_FINE"]].mean(axis=1)
 
-    dataset.drop(["TIMESTAMP_INIZIO", "TIMESTAMP_FINE"], axis=1, inplace=True)
+    dataset.drop(["TIMESTAMP_INIZIO", "TIMESTAMP_FINE", "ID"], axis=1, inplace=True)
 
-    dataset = dataset[dataset["TIMESTAMP"].dt.strftime("%y-%m") == f"{year}-{month}"]
+    dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("D").dt.to_timestamp()
 
-    def f(x: pd.Series):
-        head = x.head(1)
-
-        # warning A value is trying to be set on a copy of a slice from a DataFrame.
-        # Try using .loc[row_indexer,col_indexer] = value instead
-        head["NUMERO_PEZZI_PROD"] = x["NUMERO_PEZZI_PROD"].sum()
-
-        return head
-
-    grouper = pd.Grouper(key="TIMESTAMP", freq="1D")
-    dataset = dataset.groupby(grouper).apply(f, include_groups=False)
-
-    # Grouper used TIMESTAMP as index, here we convert to column
-    dataset = dataset.reset_index()
-
-    dataset.drop("ID", axis=1, inplace=True)
-
+    # TODO review those drops
     if dataset["EXP_STATUS"].eq("0").all():
         dataset.drop("EXP_STATUS", axis=1, inplace=True)
 
-    dataset.rename({"NUMERO_PEZZI_PROD": "Productions"}, axis=1, inplace=True)
-
-    # TODO review those drops
-    # this is to remove a strange column that is created on grouping
-    dataset.drop(["level_1"], axis=1, inplace=True)
-    dataset.drop(["COD_ART"], axis=1, inplace=True)
     if "ODP" in dataset.columns:
         dataset.drop(["ODP"], axis=1, inplace=True)
+
+
+    dataset = (
+        dataset.groupby(["TIMESTAMP", "COD_ART"]).sum(numeric_only=True).reset_index()
+    )
+
+    dataset.rename({"NUMERO_PEZZI_PROD": "Productions"}, axis=1, inplace=True)
+
+    # this is to remove a strange column that is created on grouping
+    # dataset.drop(["COD_ART"], axis=1, inplace=True)
 
     return dataset
 

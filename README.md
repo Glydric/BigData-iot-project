@@ -30,3 +30,9 @@ We use Docker Compose to create the infrastructure
 - Aggiungere il tipo di prodotto all'interno del dataset
 - (opzionale) Aggiungere il tipo di materiale
  - Generare un dataset che contiene l'articolo e il materiale
+- Obiettivo finale: cercare di prevedere i fallimenti in base ai dati di produzione e di tensione (e magari anche in base al tipo di prodotto e di materiale)
+  - Innanzitutto è necessaria un'analisi di fattibilità, ci sono 3 casistiche
+    - Machine Learning infattibile (dati non correlati)
+    - Machine Learning possibile ma non preciso (dati correlati ma insufficienti)
+    - Machine Learning possibile e preciso (dati correlati e sufficienti)
+  - Successivamente è possibile procedere con l'implementazione di un modello di Machine Learning
