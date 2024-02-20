@@ -30,49 +30,46 @@ colors = [
 
 
 def trace(fig: go.Figure, values, art: str, color: str):
-    if "EnergyConsumption" in values.columns:
-        fig.add_trace(
-            go.Scatter(
-                name="Energy " + art,
-                x=values["TIMESTAMP"],
-                y=values["EnergyConsumption"],
-                text=values["EnergyConsumption"],
-                marker=dict(size=10, color=color),
-                mode="markers+lines",
-            ),
-            col=1,
-            row=1,
-        )
+    fig.add_trace(
+        go.Scatter(
+            name=art + "Energy",
+            x=values["TIMESTAMP"],
+            y=values["EnergyConsumption"],
+            text=values["EnergyConsumption"],
+            marker=dict(size=10, color=color),
+            mode="markers+lines",
+        ),
+        col=1,
+        row=1,
+    )
 
-    if "Productions" in values.columns:
-        fig.add_trace(
-            go.Scatter(
-                name="Productions " + art,
-                x=values["TIMESTAMP"],
-                y=values["Productions"],
-                text=values["Productions"],
-                marker=dict(size=10, color=color),
-                mode="markers+lines",
-            ),
-            col=1,
-            row=2,
-        )
+    fig.add_trace(
+        go.Scatter(
+            name=art + " Productions",
+            x=values["TIMESTAMP"],
+            y=values["Productions"],
+            text=values["Productions"],
+            marker=dict(size=10, color=color),
+            mode="markers+lines",
+        ),
+        col=1,
+        row=2,
+    )
 
-    if "Fermate" in values.columns:
-        fig.add_trace(
-            go.Scatter(
-                name="Stops " + art,
-                x=values["TIMESTAMP"],
-                y=values["Fermate"],
-                text=values["DESFERM"] if "DESFERM" in values.columns else None,
-                marker=dict(size=10, color=color),
-            ),
-            col=1,
-            row=3,
-        )
+    fig.add_trace(
+        go.Scatter(
+            name=art + " Stops",
+            x=values["TIMESTAMP"],
+            y=values["Fermate"],
+            text=values["DESFERM"] if "DESFERM" in values.columns else None,
+            marker=dict(size=10, color=color),
+        ),
+        col=1,
+        row=3,
+    )
 
 
-def plot(df, id: int = None):
+def plot(df, id: int = None, year: int = None, month: int = None):
     count = 0
 
     fig = make_subplots(
@@ -83,7 +80,10 @@ def plot(df, id: int = None):
         vertical_spacing=0.06,
     )
 
-    text = f"Dataset macchine {id}" if id else "Dataset"
+    text = "Dataset"
+    if id and year and month:
+        text += f" machine {id} - {year}/{month}"
+
     fig.update_layout(height=800, width=1280, title_text=text)
 
     for art in df["COD_ART"].unique():

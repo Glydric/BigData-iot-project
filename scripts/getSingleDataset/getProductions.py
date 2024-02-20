@@ -14,7 +14,7 @@ def productionFixComma(line: str, columns: int):
 
 def getProductionWithFixedComma(name: str):
     # previous = datetime.now()
-    with open(name) as file:
+    with open(name, errors="ignore") as file:
         lines = file.readlines()
 
         head = lines[0].split(",")
@@ -79,6 +79,9 @@ def getProductions(id: str, year: str, month: str):
         df.dropna(inplace=True)
         df.drop(0, inplace=True)
 
+        if "COD_MACC" not in df.columns:
+            continue
+        
         df["COD_MACC"] = pd.to_numeric(df["COD_MACC"])
 
         df.dropna(inplace=True)

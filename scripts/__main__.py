@@ -3,7 +3,6 @@ from getDataset import forEveryMachine, getEntireDataset
 from plots import plot
 
 
-
 if __name__ == "__main__":
     pd.set_option("display.max_rows", None)
     pd.options.mode.copy_on_write = True
