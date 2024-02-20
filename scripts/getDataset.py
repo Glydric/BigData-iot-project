@@ -1,20 +1,17 @@
 import os
 import pandas as pd
 from datetime import datetime
-from plots import plot
 from getSingleDataset.getProductions import getProductions
 from getSingleDataset.getFermate import getFermate
 from getSingleDataset.getEnergy import getEnergy
 
 
-def mergeDataset(dfs: [pd.DataFrame]):
+def mergeDataset(dfs: list[pd.DataFrame]):
     dataset = pd.DataFrame()
 
     dfs = [df for df in dfs if not df.empty]
 
     for df in dfs:
-        # df["TIMESTAMP"] = df["TIMESTAMP"].dt.round("1h")
-
         if dataset.empty:
             dataset = df
         else:
@@ -25,34 +22,6 @@ def mergeDataset(dfs: [pd.DataFrame]):
     # completeDataset = completeDataset.dropna()
 
     return dataset
-
-
-def getEntireDataset(id: int, year_int: int, month_int: int):
-    year = str(year_int)[slice(2, 4)]
-    month = f"{month_int:02d}"
-
-    print("__Getting Fermate__")
-    fermate = getFermate(id, year, month)
-    if fermate.empty:
-        print("WARNING, Fermate was Empty")
-    else:
-        assert "TIMESTAMP" in fermate.columns
-
-    print("__Getting Productions__")
-    productions = getProductions(id, year, month)
-    if productions.empty:
-        print("WARNING, Productions was Empty")
-    else:
-        assert "TIMESTAMP" in productions.columns
-
-    print("__Getting Enegy Consumption__")
-    energy = getEnergy(id, year, month)
-    if energy.empty:
-        print("WARNING, Energy was Empty")
-    else:
-        assert "TIMESTAMP" in energy.columns
-
-    return mergeDataset([fermate, productions, energy])
 
 
 def getAvailableMachines():
@@ -88,54 +57,29 @@ def getAvailableMachines():
     return machines
 
 
-if __name__ == "__main__":
-    pd.set_option("display.max_rows", None)
-    pd.options.mode.copy_on_write = True
+def getEntireDataset(id: int, year_int: int, month_int: int):
+    year = str(year_int)[slice(2, 4)]
+    month = f"{month_int:02d}"
 
-    id = "0301"
-    try:
+    print("__Getting Fermate__")
+    fermate = getFermate(id, year, month)
+    if fermate.empty:
+        print("WARNING, Fermate was Empty")
+    else:
+        assert "TIMESTAMP" in fermate.columns
 
-        machines = getAvailableMachines()
-        dfs = []
-        errors = []
-        # try:
-        #     print(getEntireDataset(306, 2022, 7))
-        # except Exception as e:
-        #     errors.append(e)
+    print("__Getting Productions__")
+    productions = getProductions(id, year, month)
+    if productions.empty:
+        print("WARNING, Productions was Empty")
+    else:
+        assert "TIMESTAMP" in productions.columns
 
-        for machineId in machines:
-            for year in machines[machineId].keys():
-                for month in machines[machineId][year]:
-                    print(
-                        f"\n\n----- Machine {machineId} Year {year} Month {month} ------"
-                    )
-                    try:
-                        df = getEntireDataset(machineId, year, month)
-                        plot(df, machineId)
+    print("__Getting Enegy Consumption__")
+    energy = getEnergy(id, year, month)
+    if energy.empty:
+        print("WARNING, Energy was Empty")
+    else:
+        assert "TIMESTAMP" in energy.columns
 
-                        df["ID"] = machineId
-                        dfs.append(df)
-                    except Exception as e:
-                        print(f"Error {e}")
-                        errors.append(e)
-                        errors.append(
-                            {
-                                "machineId": machineId,
-                                "year": year,
-                                "month": month,
-                                "error": e,
-                            }
-                        )
-
-        if errors != []:
-            print(errors)
-        completeDataset = pd.concat(dfs, ignore_index=True)
-
-        print(f"\n----- Entire Dataset {id} ------\n")
-
-        print(completeDataset)
-        print(completeDataset.shape)
-        plot(completeDataset)
-
-    except Exception as e:
-        print(e)
+    return mergeDataset([fermate, productions, energy])
