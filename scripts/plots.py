@@ -19,55 +19,61 @@ print(times.head())
 print(energy.head()) """
 
 
+colors = [
+    "blue",
+    "green",
+    "#FF0000",
+    "#00FFFF",
+    "#FFFF00",
+    "#880000",
+]
+
+
 def trace(fig: go.Figure, values, art: str, color: str):
-    fig.add_trace(
-        go.Scatter(
-            name="Energy " + art,
-            x=values["TIMESTAMP"],
-            y=values["EnergyConsumption"],
-            text=values["EnergyConsumption"],
-            marker=dict(size=10, color=color),
-            mode="markers+lines",
-        ),
-        col=1,
-        row=1,
-    )
+    if "EnergyConsumption" in values.columns:
+        fig.add_trace(
+            go.Scatter(
+                name="Energy " + art,
+                x=values["TIMESTAMP"],
+                y=values["EnergyConsumption"],
+                text=values["EnergyConsumption"],
+                marker=dict(size=10, color=color),
+                mode="markers+lines",
+            ),
+            col=1,
+            row=1,
+        )
 
-    fig.add_trace(
-        go.Scatter(
-            name="Productions " + art,
-            x=values["TIMESTAMP"],
-            y=values["Productions"],
-            text=values["Productions"],
-            marker=dict(size=10, color=color),
-            mode="markers+lines",
-        ),
-        col=1,
-        row=2,
-    )
+    if "Productions" in values.columns:
+        fig.add_trace(
+            go.Scatter(
+                name="Productions " + art,
+                x=values["TIMESTAMP"],
+                y=values["Productions"],
+                text=values["Productions"],
+                marker=dict(size=10, color=color),
+                mode="markers+lines",
+            ),
+            col=1,
+            row=2,
+        )
 
-    fig.add_trace(
-        go.Scatter(
-            name="Stops " + art,
-            x=values["TIMESTAMP"],
-            y=values["Fermate"],
-            text=values["DESFERM"],
-            marker=dict(size=10, color=color),
-        ),
-        col=1,
-        row=3,
-    )
+    if "Fermate" in values.columns:
+        fig.add_trace(
+            go.Scatter(
+                name="Stops " + art,
+                x=values["TIMESTAMP"],
+                y=values["Fermate"],
+                text=values["DESFERM"] if "DESFERM" in values.columns else None,
+                marker=dict(size=10, color=color),
+            ),
+            col=1,
+            row=3,
+        )
 
 
 def plot(df, id: int = None):
-    colors = [
-        "blue",
-        "green",
-        "#FF0000",
-        "#00FFFF",
-        "#FFFF00",
-        "#880000",
-    ]
+    count = 0
 
     fig = make_subplots(
         rows=3,
@@ -81,10 +87,12 @@ def plot(df, id: int = None):
     fig.update_layout(height=800, width=1280, title_text=text)
 
     for art in df["COD_ART"].unique():
-        color = "black" if art == "Unknown" else colors.pop(0)
+        color = "black" if art == "Unknown" else colors[count % len(colors)]
         values = df[df["COD_ART"] == art]
 
         trace(fig, values, art, color)
+
+        count += 1
 
     fig.show()
 

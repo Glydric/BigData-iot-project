@@ -64,6 +64,8 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
 # Get the productions
 def getProductions(id: str, year: str, month: str):
+    print("__Getting Productions__")
+
     base_dir = "dataset/productions"
 
     dfs = []

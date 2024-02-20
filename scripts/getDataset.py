@@ -20,9 +20,13 @@ def mergeDataset(dfs: list[pd.DataFrame]):
             dataset = dataset.merge(df, on="TIMESTAMP", how="outer")
 
     # completeDataset = completeDataset.dropna()
-    dataset["COD_ART"] = dataset["COD_ART"].fillna("Unknown")
-    dataset["DESFERM"] = dataset["DESFERM"].fillna("Unknown")
-    # dataset["COD_ART"] = dataset.loc[:, ("COD_ART")].astype(str)
+    if "COD_ART" in dataset.columns:
+        dataset["COD_ART"] = dataset["COD_ART"].fillna("Unknown")
+    else:
+        dataset["COD_ART"] = "Unknown"
+
+    if "DESFERM" in dataset.columns:
+        dataset["DESFERM"] = dataset["DESFERM"].fillna("Unknown")
 
     return dataset
 
@@ -64,21 +68,18 @@ def getEntireDataset(id: int, year_int: int, month_int: int):
     year = str(year_int)[slice(2, 4)]
     month = f"{month_int:02d}"
 
-    print("__Getting Fermate__")
     fermate = getFermate(id, year, month)
     if fermate.empty:
         print("WARNING, Fermate was Empty")
     else:
         assert "TIMESTAMP" in fermate.columns
 
-    print("__Getting Productions__")
     productions = getProductions(id, year, month)
     if productions.empty:
         print("WARNING, Productions was Empty")
     else:
         assert "TIMESTAMP" in productions.columns
 
-    print("__Getting Enegy Consumption__")
     energy = getEnergy(id, year, month)
     if energy.empty:
         print("WARNING, Energy was Empty")

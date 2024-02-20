@@ -25,6 +25,8 @@ def prepareEnergy(dataset: pd.DataFrame):
 
 # Get the energy consumption values
 def getEnergy(id: str, year: str, month: str):
+    print("__Getting Enegy Consumption__")
+
     base_dir = "dataset/energy"
     file = "location_Tormatic-channel_{}-register_Ea_Imp_20{}-{}-"
 

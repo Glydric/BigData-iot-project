@@ -18,13 +18,13 @@ def prepareFermate(dataset: pd.DataFrame):
     assert (dataset["SHIFT_END"] == dataset["START_DATE"]).all()
     assert (dataset["START_DATE"] == dataset["END_DATE"]).all()
 
-    dataset = dataset[dataset["DESFERM"].isin(valid_fermate)]
-
     dataset.drop(
         ["SHIFT_DATE", "SHIFT_START", "SHIFT_END", "START_DATE", "END_DATE"],
         axis=1,
         inplace=True,
     )
+
+    dataset = dataset[dataset["DESFERM"].isin(valid_fermate)]
 
     # TODO check why the following data is always the same
     if dataset["SHIFT_CODE"].diff(0).all():
@@ -70,6 +70,8 @@ def prepareFermate(dataset: pd.DataFrame):
 
 # Get the stops
 def getFermate(id: str, year: str, month: str):
+    print("__Getting Fermate__")
+
     base_dir = "dataset/fermi/Fermate"
 
     dfs = []
