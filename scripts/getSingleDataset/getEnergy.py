@@ -16,6 +16,8 @@ def prepareEnergy(dataset: pd.DataFrame):
     def f(x: pd.Series):
         head = x.head(1)
 
+        # warning A value is trying to be set on a copy of a slice from a DataFrame.
+        # Try using .loc[row_indexer,col_indexer] = value instead
         head["Ea_Imp"] = x["Ea_Imp"].sum()
 
         return head

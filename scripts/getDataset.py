@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 from datetime import datetime
-from getSingleDataset.getProductions import getProductions
-from getSingleDataset.getFermate import getFermate
-from getSingleDataset.getEnergy import getEnergy
+from .getSingleDataset.getProductions import getProductions
+from .getSingleDataset.getFermate import getFermate
+from .getSingleDataset.getEnergy import getEnergy
 
 
 def mergeDataset(dfs: list[pd.DataFrame]):

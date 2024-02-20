@@ -2,12 +2,24 @@ import os
 import pandas as pd
 from .utils import getCleanDataset
 
+
+valid_fermate = [
+    "Manutenzione ordinaria",
+    "Manutenzione straordinaria",
+    "Affilatura Utensile",
+    "Sostituzione utensile",
+]
+
+
 def prepareFermate(dataset: pd.DataFrame):
     # check if shift_date is the same as shift_start, shift_end, start_date, end_date
     assert (dataset["SHIFT_DATE"] == dataset["SHIFT_START"]).all()
     assert (dataset["SHIFT_START"] == dataset["SHIFT_END"]).all()
     assert (dataset["SHIFT_END"] == dataset["START_DATE"]).all()
     assert (dataset["START_DATE"] == dataset["END_DATE"]).all()
+
+    dataset = dataset[dataset["DESFERM"].isin(valid_fermate)]
+
     dataset.drop(
         ["SHIFT_DATE", "SHIFT_START", "SHIFT_END", "START_DATE", "END_DATE"],
         axis=1,
@@ -35,7 +47,7 @@ def prepareFermate(dataset: pd.DataFrame):
         print("WARNING, you are dropping QTY_GOOD that is not always the same")
         print(dataset["QTY_GOOD"])
 
-    dataset = dataset.groupby(["TIMESTAMP"]).count().reset_index()
+    dataset = dataset.groupby(["TIMESTAMP", "DESFERM"]).count().reset_index()
 
     # we choose SHIFT_CODE but it can be any column
     dataset.rename(columns={"SHIFT_CODE": "Fermate"}, inplace=True)
@@ -48,7 +60,6 @@ def prepareFermate(dataset: pd.DataFrame):
             "T_STOP",
             "QTY_GOOD",
             "QTY_SCRAP",
-            "DESFERM",
         ],
         axis=1,
         inplace=True,
@@ -58,7 +69,6 @@ def prepareFermate(dataset: pd.DataFrame):
 
 
 # Get the stops
-# TODO check if works
 def getFermate(id: str, year: str, month: str):
     base_dir = "dataset/fermi/Fermate"
 

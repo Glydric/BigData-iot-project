@@ -46,6 +46,8 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
     def f(x: pd.Series):
         head = x.head(1)
 
+        # warning A value is trying to be set on a copy of a slice from a DataFrame.
+        # Try using .loc[row_indexer,col_indexer] = value instead
         head["NUMERO_PEZZI_PROD"] = x["NUMERO_PEZZI_PROD"].sum()
 
         return head
