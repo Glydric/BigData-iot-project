@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from datetime import datetime
+from plots import plot
 
 
 def productionFixComma(line: str, columns: int):
@@ -30,6 +31,7 @@ def getCleanDataset(file: str):
 
 
 def getProductionWithFixedComma(name: str):
+    # previous = datetime.now()
     with open(name) as file:
         lines = file.readlines()
 
@@ -45,6 +47,7 @@ def getProductionWithFixedComma(name: str):
         df = pd.DataFrame(lines_data)
         df.rename(columns={x: head[x] for x in range(0, len(head))}, inplace=True)
 
+        # print(datetime.now() - previous)
         return cleanDataset(df)
 
 
@@ -104,25 +107,35 @@ def prepareFermate(dataset: pd.DataFrame):
 
 
 # Get the stops
+# TODO check if works
 def getFermate(id: str, year: str, month: str):
     base_dir = "dataset/fermi/Fermate"
 
-    dataset = getCleanDataset(f"{base_dir}/FERMATE {year}{month}.csv")
-    # this automatically handles the "0101" -> "101" conversion as df["RESOURCE"].dtypes is int64
-    dataset = dataset[dataset["RESOURCE"] == int(id)]
+    dfs = []
+    # dataset = getCleanDataset(f"{base_dir}/FERMATE {year}{month}.csv")
+    for f in os.listdir(f"{base_dir}"):
+        if not f.startswith(f"FERMATE "):
+            continue
+        df = getCleanDataset(f"{base_dir}/{f}")
 
-    # remove the resource column as it is the id we are looking for
-    dataset.drop("RESOURCE", axis=1, inplace=True)
+        # this automatically handles the "0101" -> "101" conversion as df["RESOURCE"].dtypes is int64
+        df = df[df["RESOURCE"] == int(id)]
 
-    if dataset.empty:
-        raise Exception("Data not found")
+        # remove the resource column as it is the id we are already filtered it
+        df.drop("RESOURCE", axis=1, inplace=True)
+
+        df["TIMESTAMP"] = pd.to_datetime(df["SHIFT_DATE"], format="%d-%b-%y")
+        df = df[df["TIMESTAMP"].dt.strftime("%y-%m") == f"{year}-{month}"]
+
+        dfs.append(df)
+
+    if dfs == []:
+        return pd.DataFrame()
+
+    dataset = pd.concat(dfs, ignore_index=True)
 
     if dataset.empty:
         return dataset
-
-    dataset["TIMESTAMP"] = pd.to_datetime(dataset["SHIFT_DATE"], format="%d-%b-%y")
-
-    dataset = dataset[dataset["TIMESTAMP"].dt.strftime("%y-%m") == f"{year}-{month}"]
 
     return prepareFermate(dataset)
 
@@ -157,6 +170,14 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
         dataset.drop("EXP_STATUS", axis=1, inplace=True)
 
     dataset.rename({"NUMERO_PEZZI_PROD": "Productions"}, axis=1, inplace=True)
+
+    # TODO review those drops
+    # this is to remove a strange column that is created on grouping
+    dataset.drop(["level_1"], axis=1, inplace=True)
+    dataset.drop(["COD_ART"], axis=1, inplace=True)
+    if "ODP" in dataset.columns:
+        dataset.drop(["ODP"], axis=1, inplace=True)
+
     return dataset
 
 
@@ -172,9 +193,14 @@ def getProductions(id: str, year: str, month: str):
 
         df = getProductionWithFixedComma(f"{base_dir}/{f}")
 
+        df.dropna(inplace=True)
         df.drop(0, inplace=True)
 
+        # print(df.loc[[210]])
+        # print(f)
+
         df["COD_MACC"] = pd.to_numeric(df["COD_MACC"])
+
         df.dropna(inplace=True)
         df = df.astype({"COD_MACC": "int32"})
 
@@ -261,68 +287,67 @@ def mergeDataset(dfs: [pd.DataFrame]):
 
             dataset = dataset.merge(df, on="TIMESTAMP", how="outer")
 
+    # completeDataset = completeDataset.dropna()
+
     return dataset
 
 
-def getEntireDataset(id: int, year: str, month: str):
-    fermate = getFermate(id, year, month)
-    productions = getProductions(id, year, month)
-    energy = getEnergy(id, year, month)
+def getEntireDataset(id: int, year_int: int, month_int: int):
+    year = str(year_int)[slice(2, 4)]
+    month = f"{month_int:02d}"
 
+    print("__Getting Fermate__")
+    fermate = getFermate(id, year, month)
     if fermate.empty:
         print("WARNING, Fermate was Empty")
+    else:
+        assert "TIMESTAMP" in fermate.columns
+
+    print("__Getting Productions__")
+    productions = getProductions(id, year, month)
     if productions.empty:
         print("WARNING, Productions was Empty")
+    else:
+        assert "TIMESTAMP" in productions.columns
+
+    print("__Getting Enegy Consumption__")
+    energy = getEnergy(id, year, month)
     if energy.empty:
         print("WARNING, Energy was Empty")
-
-    assert "TIMESTAMP" in fermate.columns
-    assert "TIMESTAMP" in productions.columns
-    assert "TIMESTAMP" in energy.columns
+    else:
+        assert "TIMESTAMP" in energy.columns
 
     return mergeDataset([fermate, productions, energy])
 
-
 def getAvailableMachines():
-    """This gets the machine ids that have an energy file. Then for each ID it creates a disct with the years
-    it spans and for each of them a set with the months. The format is like
-    {
-        '108': {
-            '2022': (7, 8, 9, 10),
-            '2023': (1, 2, 3, 4, 7, 8, 9, 10)
-        },
-        '302': {
-            '2022': (7, 8, 9, 10),
-            '2023': (1, 2, 3, 4, 7, 8, 9, 10)
-        }
-    }
-    """
     base_dir = "dataset/energy"
-    idsList = set()
     date_format = "%Y-%m-%dT%H-%M-%SZ"
+
+    idsList = set()
     machines = {}
 
     for f in os.listdir(base_dir):
-        if "location_Tormatic" in f:
-            splitedFilename = f.split("_")
-            machineId = splitedFilename[2].split("-")[0]
+        if "location_Tormatic" not in f:
+            continue
+        splitedFilename = f.split("_")
+        machineId = splitedFilename[2].split("-")[0]
 
-            date = datetime.strptime(splitedFilename[5], date_format)
-            year = date.year
-            month = date.month
+        date = datetime.strptime(splitedFilename[5], date_format)
+        year = date.year
+        month = date.month
 
-            if machineId in machines.keys():
-                if year in machines[machineId].keys():
-                    machines[machineId][year].add(month)
-                else:
-                    machines[machineId][year] = set([month])
-
+        if machineId in machines.keys():
+            if year in machines[machineId].keys():
+                machines[machineId][year].add(month)
             else:
-                machines[machineId] = {
-                    year: set([month]),
-                }
+                machines[machineId][year] = set([month])
 
-            idsList.add(machineId)
+        else:
+            machines[machineId] = {
+                year: set([month]),
+            }
+
+        idsList.add(machineId)
 
     return machines
 
@@ -332,28 +357,49 @@ if __name__ == "__main__":
     pd.options.mode.copy_on_write = True
 
     id = "0301"
-    # completeDataset = getEntireDataset("0105", "23", "05")
-    completeDataset = getEntireDataset(id, "23", "05")
-
-    # machines = getAvailableMachines()
-
-    # for machineId in machines:
-    #     for year in machines[machineId].keys():
-    #         for month in machines[machineId][year]:
-    #             completeDataset = getEntireDataset(machineId, year, month)
-
-    # print(getFermate(id, "22", "11"))
     try:
+
+        machines = getAvailableMachines()
+        dfs = []
+        errors = []
+        # try:
+        #     print(getEntireDataset(306, 2022, 7))
+        # except Exception as e:
+        #     errors.append(e)
+
+        for machineId in machines:
+            for year in machines[machineId].keys():
+                for month in machines[machineId][year]:
+                    print(
+                        f"\n\n----- Machine {machineId} Year {year} Month {month} ------"
+                    )
+                    try:
+                        df = getEntireDataset(machineId, year, month)
+                        plot(df, machineId)
+                        
+                        df["ID"] = machineId
+                        dfs.append(df)
+                    except Exception as e:
+                        print(f"Error {e}")
+                        errors.append(e)
+                        errors.append(
+                            {
+                                "machineId": machineId,
+                                "year": year,
+                                "month": month,
+                                "error": e,
+                            }
+                        )
+
+        if errors != []:
+            print(errors)
+        completeDataset = pd.concat(dfs, ignore_index=True)
+
         print(f"\n----- Entire Dataset {id} ------\n")
-        # this is to remove a strange column that is created on grouping
-        completeDataset.drop(["level_1"], axis=1, inplace=True)
-        # TODO review those drops
-        # completeDataset = completeDataset.dropna()
-        completeDataset.drop(["ODP"], axis=1, inplace=True)
-        completeDataset.drop(["COD_ART"], axis=1, inplace=True)
 
         print(completeDataset)
         print(completeDataset.shape)
+        plot(completeDataset)
 
     except Exception as e:
         print(e)
