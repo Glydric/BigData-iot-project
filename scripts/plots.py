@@ -90,7 +90,7 @@ def plot(df, id: int = None, year: int = None, month: int = None):
         color = "black" if art == "Unknown" else colors[count % len(colors)]
         values = df[df["COD_ART"] == art]
 
-        trace(fig, values, art, color)
+        trace(fig, values, str(art), color)
 
         count += 1
 

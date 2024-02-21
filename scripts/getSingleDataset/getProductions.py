@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from .utils import cleanDataset
+from .utils import cleanDataset, getCleanDataset
 
 
 def productionFixComma(line: str, columns: int):
@@ -63,9 +63,7 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
 
 # Get the productions
-def getProductions(id: str, year: str, month: str):
-    print("__Getting Productions__")
-
+def getProductions(id: str, year: str, month: str, debug = False):
     base_dir = "dataset/productions"
 
     dfs = []
@@ -74,14 +72,27 @@ def getProductions(id: str, year: str, month: str):
         if not f.startswith(f"Tormatic_20{year}{month}"):
             continue
 
-        df = getProductionWithFixedComma(f"{base_dir}/{f}")
+        try:
+            df = getCleanDataset(
+                f"{base_dir}/{f}",
+                {
+                    "COD_MACC": int,
+                    "NUMERO_PEZZI_PROD": float,
+                    "ID": int,
+                    "EXP_STATUS": int,
+                },
+            )
+        except Exception as e:
+            if debug:
+                print(f"Using fix on Production file {f}, Error {e}")
+            df = getProductionWithFixedComma(f"{base_dir}/{f}")
 
         df.dropna(inplace=True)
         df.drop(0, inplace=True)
 
         if "COD_MACC" not in df.columns:
             continue
-        
+
         df["COD_MACC"] = pd.to_numeric(df["COD_MACC"])
 
         df.dropna(inplace=True)

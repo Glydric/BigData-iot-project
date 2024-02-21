@@ -65,24 +65,35 @@ def mergeDataset(dfs: list[pd.DataFrame]):
     return dataset
 
 
-def getEntireDataset(id: int, year_int: int, month_int: int):
-    print("\n")
+def getEntireDataset(id: int, year_int: int, month_int: int, debug = True):
     year = str(year_int)[slice(2, 4)]
     month = f"{month_int:02d}"
 
+    if (debug):
+        print("__Getting Fermate__")
+
     fermate = getFermate(id, year, month)
     if fermate.empty:
-        print("WARNING, Fermate was Empty on ", id, year, month)
+        if (debug):
+            print("WARNING, Fermate was Empty on ", id, year, month)
         return pd.DataFrame()
 
-    productions = getProductions(id, year, month)
+    if (debug):
+        print("__Getting Productions__")
+
+    productions = getProductions(id, year, month, debug)
     if productions.empty:
-        print("WARNING, Productions was Empty on ", id, year, month)
+        if (debug):
+            print("WARNING, Productions was Empty on ", id, year, month)
         return pd.DataFrame()
 
+    if (debug):
+        print("__Getting Enegy Consumption__")
+        
     energy = getEnergy(id, year, month)
     if energy.empty:
-        print("WARNING, Energy was Empty on ", id, year, month)
+        if (debug):
+            print("WARNING, Energy was Empty on ", id, year, month)
         return pd.DataFrame()
 
     assert "TIMESTAMP" in fermate.columns

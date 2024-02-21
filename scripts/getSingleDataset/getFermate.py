@@ -35,9 +35,9 @@ def prepareFermate(dataset: pd.DataFrame):
         print("WARNING, you are dropping STAGE that is not always the same")
         print(dataset["STAGE"].unique())
 
-    if (dataset["STOP_CODE"] != 2).all():
-        print("WARNING, you are dropping STOP_CODE that is not always the same")
-        print(dataset["STOP_CODE"].unique())
+    # if (dataset["STOP_CODE"] != 2).all():
+        # print("WARNING, you are dropping STOP_CODE that is not always the same")
+        # print(dataset["STOP_CODE"].unique())
 
     if (dataset["QTY_SCRAP"] != 0).all():
         print("WARNING, you are dropping QTY_SCRAP that is not always the same")
@@ -70,8 +70,6 @@ def prepareFermate(dataset: pd.DataFrame):
 
 # Get the stops
 def getFermate(id: str, year: str, month: str):
-    print("__Getting Fermate__")
-
     base_dir = "dataset/fermi/Fermate"
 
     dfs = []

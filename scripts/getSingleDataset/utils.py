@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def cleanDataset(df: pd.DataFrame):
     def f(x: str):
         # print(df.columns)
@@ -12,6 +13,6 @@ def cleanDataset(df: pd.DataFrame):
     return df
 
 
-def getCleanDataset(file: str):
-    df = pd.read_csv(file, delimiter=",")
+def getCleanDataset(file: str, dtypes = None):
+    df = pd.read_csv(file, delimiter=",", dtype=dtypes)
     return cleanDataset(df)

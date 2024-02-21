@@ -16,96 +16,135 @@ The analysis is made using the Jupyter Notebook and pandas library
   - To do this I have to clean the dataset to prepare the merge, problems like different timestamps and different formats do not allow the data to be merged
 - Then I used a visual library like Plotly to make show the data and think on the possible analysis to do
 
-So I find out some possible machines and month with good data to analyze:
-- machine 306 - 2023/01
-- machine 306 - 2023/06
-- machine 306 - 2022/12
-- machine 305 - 2022/12
-- machine 305 - 2023/01
-- machine 315 - 2022/12
-- machine 315 - 2023/01
-- machine 315 - 2023/03
-- machine 315 - 2023/06
-- machine 315 - 2023/07
-- machine 618 - 2023/01
-- machine 618 - 2023/03
-- machine 618 - 2023/06
-- machine 618 - 2023/07
-- machine 618 - 2022/12
-machine 108 - 2022/11
-machine 108 - 2022/12
-machine 108 - 2023/06
-machine 108 - 2023/07
-machine 610 - 2023/01
-machine 610 - 2023/06
-machine 610 - 2023/07
-machine 610 - 2022/12
-machine 301 - 2022/12
-machine 301 - 2023/01
-machine 301 - 2023/03
-machine 304 - 2022/12
-machine 304 - 2023/01
-machine 304 - 2023/07
-machine 307 - 2023/01
-machine 307 - 2023/03
-machine 307 - 2023/05
-machine 307 - 2023/06
-machine 307 - 2023/07
-machine 307 - 2022/12
-machine 611 - 2022/12
-machine 611 - 2023/01
-machine 611 - 2023/03
-machine 611 - 2023/06
-machine 611 - 2023/07
-machine 308 - 2022/12
-machine 308 - 2023/01
-machine 308 - 2023/06
-machine 515 - 2023/01
-machine 515 - 2023/06
-machine 515 - 2023/07
-machine 515 - 2023/08
-machine 515 - 2022/12
-machine 110 - 2023/01
-machine 110 - 2023/03
-machine 110 - 2023/05
-machine 110 - 2023/06
-machine 110 - 2023/07
-machine 110 - 2022/12
-machine 614 - 2023/01
-machine 614 - 2023/03
-machine 614 - 2023/06
-machine 614 - 2023/07
-machine 614 - 2022/11
-machine 614 - 2022/12
-machine 302 - 2022/12
-machine 302 - 2023/01
-machine 302 - 2023/03
-machine 302 - 2023/06
-machine 302 - 2023/07
-machine 302 - 2023/01
-machine 319 - 2023/07
-machine 319 - 2022/12
-machine 612 - 2023/01
-machine 612 - 2023/03
-machine 612 - 2023/07
-machine 612 - 2022/12
-machine 313 - 2023/01
-machine 313 - 2022/12
-machine 313 - 2023/01
-machine 310 - 2023/06
-machine 310 - 2022/12
-machine 303 - 2023/01
-machine 303 - 2023/03
-machine 303 - 2023/07
-machine 303 - 2022/12
-machine 309 - 2022/12
-machine 314 - 2023/01
-machine 304 - 2022/12
-
-
 Possible relations are
 - The production problems could be related to the voltage spikes or drops
 - Problems/productions rate
+
+## Remove the useless machines
+First of all I removed from dataset the machines without enough data and get the followings:
+- Machine 306 - 2023/03
+- Machine 306 - 2023/06
+- Machine 306 - 2023/07
+- Machine 306 - 2023/08
+- Machine 306 - 2022/12
+- Machine 315 - 2022/12
+- Machine 315 - 2023/03
+- Machine 618 - 2023/03
+- Machine 108 - 2023/03
+- Machine 108 - 2023/07
+- Machine 108 - 2023/08
+- Machine 610 - 2023/01
+- Machine 610 - 2023/06
+- Machine 610 - 2023/07
+- Machine 610 - 2023/08
+- Machine 610 - 2022/12
+- Machine 301 - 2023/01
+- Machine 301 - 2023/03
+- Machine 301 - 2023/06
+- Machine 301 - 2022/12
+- Machine 304 - 2023/01
+- Machine 304 - 2023/03
+- Machine 304 - 2023/06
+- Machine 307 - 2023/03
+- Machine 307 - 2023/06
+- Machine 611 - 2022/12
+- Machine 611 - 2023/03
+- Machine 611 - 2023/06
+- Machine 611 - 2023/08
+- Machine 308 - 2023/01
+- Machine 308 - 2023/03
+- Machine 515 - 2023/01
+- Machine 515 - 2023/03
+- Machine 515 - 2023/06
+- Machine 515 - 2023/07
+- Machine 515 - 2023/08
+- Machine 515 - 2022/12
+- Machine 110 - 2023/01
+- Machine 110 - 2023/03
+- Machine 110 - 2023/06
+- Machine 110 - 2023/07
+- Machine 110 - 2023/08
+- Machine 110 - 2022/12
+- Machine 614 - 2023/01
+- Machine 614 - 2023/03
+- Machine 614 - 2023/06
+- Machine 614 - 2023/07
+- Machine 302 - 2022/12
+- Machine 302 - 2023/03
+- Machine 302 - 2023/06
+- Machine 319 - 2023/03
+- Machine 319 - 2023/06
+- Machine 319 - 2023/07
+- Machine 319 - 2022/12
+- Machine 612 - 2023/01
+- Machine 612 - 2023/03
+- Machine 612 - 2023/07
+- Machine 612 - 2022/12
+- Machine 313 - 2023/01
+- Machine 313 - 2023/03
+- Machine 310 - 2023/03
+- Machine 310 - 2023/06
+- Machine 303 - 2023/03
+- Machine 303 - 2023/06
+- Machine 303 - 2022/12
+- Machine 309 - 2023/03
+- Machine 309 - 2023/06
+- Machine 314 - 2023/03
+- Machine 314 - 2023/06
+
+Then I checked for the graph and taked the ones that seems to have a good correlation, getting the followings
+- Machine 108 - 2023/07
+- Machine 110 - 2022/12
+- Machine 110 - 2023/01
+- Machine 110 - 2023/03
+- Machine 110 - 2023/06
+- Machine 110 - 2023/07
+- Machine 301 - 2022/12
+- Machine 301 - 2023/01
+- Machine 301 - 2023/03
+- Machine 302 - 2022/12
+- Machine 302 - 2023/03
+- Machine 302 - 2023/06
+- Machine 303 - 2022/12
+- Machine 303 - 2023/03
+- Machine 304 - 2023/01
+- Machine 306 - 2022/12
+- Machine 306 - 2023/06
+- Machine 307 - 2023/03
+- Machine 307 - 2023/06
+- Machine 308 - 2023/01
+- Machine 310 - 2023/06
+- Machine 313 - 2023/01
+- Machine 315 - 2022/12
+- Machine 315 - 2023/03
+- Machine 319 - 2022/12
+- Machine 319 - 2023/07
+- Machine 515 - 2022/12
+- Machine 515 - 2023/01
+- Machine 515 - 2023/06
+- Machine 515 - 2023/07
+- Machine 515 - 2023/08
+- Machine 610 - 2022/12
+- Machine 610 - 2023/01
+- Machine 610 - 2023/06
+- Machine 610 - 2023/07
+- Machine 611 - 2022/12
+- Machine 611 - 2023/03
+- Machine 611 - 2023/06
+- Machine 612 - 2022/12
+- Machine 612 - 2023/01
+- Machine 612 - 2023/03
+- Machine 612 - 2023/07
+- Machine 614 - 2023/01
+- Machine 614 - 2023/03
+- Machine 614 - 2023/06
+- Machine 614 - 2023/07
+- Machine 618 - 2023/03
+
+
+# Feasibility analysis
+It seems that we have enough data to make a machine learning model, but we need to check if the data is correlated and if the data is enough to make a model
+
 
 # TODO
 - (opzionale) Aggiungere il tipo di materiale
