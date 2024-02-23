@@ -53,7 +53,7 @@ def trace(fig: go.Figure, values, art: str, color: str):
             mode="markers+lines",
         ),
         col=1,
-        row=2,
+        row=3,
     )
 
     fig.add_trace(
@@ -63,9 +63,10 @@ def trace(fig: go.Figure, values, art: str, color: str):
             y=values["Fermate"],
             text=values["DESFERM"] if "DESFERM" in values.columns else None,
             marker=dict(size=10, color=color),
+            mode="markers+lines",
         ),
         col=1,
-        row=3,
+        row=2,
     )
 
 
@@ -75,14 +76,16 @@ def plot(df, id: int = None, year: int = None, month: int = None):
     fig = make_subplots(
         rows=3,
         cols=1,
-        subplot_titles=["Energy Consumption", "Productions", "Stops"],
+        subplot_titles=["Energy Consumption", "Stops", "Productions"],
         shared_xaxes=True,
         vertical_spacing=0.06,
     )
 
     text = "Dataset"
-    if id and year and month:
-        text += f" machine {id} - {year}/{month}"
+    if id :
+        text += f" machine {id}"
+    if year and month:
+        text += f" - {year}/{month}"
 
     fig.update_layout(height=800, width=1280, title_text=text)
 

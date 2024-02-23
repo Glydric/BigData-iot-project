@@ -19,6 +19,7 @@ def prepareEnergy(dataset: pd.DataFrame):
     dataset = dataset.reset_index()
 
     dataset.rename({"Ea_Imp": "EnergyConsumption"}, axis=1, inplace=True)
+    dataset.drop(["index"], axis=1, inplace=True)
 
     return dataset
 

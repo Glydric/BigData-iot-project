@@ -82,6 +82,7 @@ def getEntireDataset(id: int, year_int: int, month_int: int, debug = True):
         print("__Getting Productions__")
 
     productions = getProductions(id, year, month, debug)
+
     if productions.empty:
         if (debug):
             print("WARNING, Productions was Empty on ", id, year, month)
@@ -89,7 +90,7 @@ def getEntireDataset(id: int, year_int: int, month_int: int, debug = True):
 
     if (debug):
         print("__Getting Enegy Consumption__")
-        
+
     energy = getEnergy(id, year, month)
     if energy.empty:
         if (debug):

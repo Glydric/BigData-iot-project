@@ -92,58 +92,47 @@ First of all I removed from dataset the machines without enough data and get the
 - Machine 314 - 2023/03
 - Machine 314 - 2023/06
 
-Then I checked for the graph and taked the ones that seems to have a good correlation, getting the followings
-- Machine 108 - 2023/07
-- Machine 110 - 2022/12
-- Machine 110 - 2023/01
-- Machine 110 - 2023/03
-- Machine 110 - 2023/06
-- Machine 110 - 2023/07
-- Machine 301 - 2022/12
-- Machine 301 - 2023/01
-- Machine 301 - 2023/03
-- Machine 302 - 2022/12
-- Machine 302 - 2023/03
-- Machine 302 - 2023/06
-- Machine 303 - 2022/12
-- Machine 303 - 2023/03
-- Machine 304 - 2023/01
-- Machine 306 - 2022/12
-- Machine 306 - 2023/06
-- Machine 307 - 2023/03
-- Machine 307 - 2023/06
-- Machine 308 - 2023/01
-- Machine 310 - 2023/06
-- Machine 313 - 2023/01
-- Machine 315 - 2022/12
-- Machine 315 - 2023/03
-- Machine 319 - 2022/12
-- Machine 319 - 2023/07
-- Machine 515 - 2022/12
-- Machine 515 - 2023/01
-- Machine 515 - 2023/06
-- Machine 515 - 2023/07
-- Machine 515 - 2023/08
-- Machine 610 - 2022/12
-- Machine 610 - 2023/01
-- Machine 610 - 2023/06
-- Machine 610 - 2023/07
-- Machine 611 - 2022/12
-- Machine 611 - 2023/03
-- Machine 611 - 2023/06
-- Machine 612 - 2022/12
-- Machine 612 - 2023/01
-- Machine 612 - 2023/03
-- Machine 612 - 2023/07
-- Machine 614 - 2023/01
-- Machine 614 - 2023/03
-- Machine 614 - 2023/06
-- Machine 614 - 2023/07
-- Machine 618 - 2023/03
-
 
 # Feasibility analysis
 It seems that we have enough data to make a machine learning model, but we need to check if the data is correlated and if the data is enough to make a model
+First of all i merged the months of the same machine to have a wider view of the life of a single machine, this allows me to better understand if a machine have enough data to be suitable for ML, those are the results:
+- Machine 108, have only 1 month of incomplete data, i'll remove it
+- Machine 110, the data shows inconsistency on the stops, as sometime increases with productions and EC, sometimes decreases
+- Machine 301, at the beginning the stops do not changes the productions, then the stops follows EC, then it shows consistency and inconsistency unpredictably
+- Machine 302, sometimes the stops increases with the productions, sometimes decreases
+- Machine 303, we don't have enough data
+- Machine 304, we don't have enough data
+- Machine 306, may be interesting, in the second half, the EC sometimes is related to the stops, sometimes to the productions
+- Machine 307, we don't have enough data
+- Machine 308, we don't have enough data
+- Machine 310, we don't have enough data
+- Machine 313, if the first half the Stops leads to a decrease in EC and Productions, while on the second half this is not true
+- Machine 315, sometimes the stops increases with the productions and EC, sometimes decreases
+- Machine 319, sometimes the stops increases with the productions and EC, sometimes decreases
+- Machine 515, sometimes the stops increases with the productions and EC, sometimes decreases
+- Machine 610, sometimes the stops increases with the productions and EC, sometimes decreases
+- ...
+
+At the end I used Pearson correlation to compute and remove the machines that does not have at least one correlated value.
+The results are:
+- Macine 304
+- Macine 515
+- Macine 110
+- Macine 306
+- Macine 302
+- Macine 303
+- Macine 301
+- Macine 315
+- Macine 314
+- Macine 611
+- Macine 610
+- Macine 612
+- Macine 618
+- Macine 108
+- Macine 309
+
+We have a total of 2389 rows of data, that are probably not enough to make a machine learning model
+
 
 
 # TODO
@@ -154,4 +143,5 @@ It seems that we have enough data to make a machine learning model, but we need 
     - Machine Learning infattibile (dati non correlati)
     - Machine Learning possibile ma non preciso (dati correlati ma insufficienti)
     - Machine Learning possibile e preciso (dati correlati e sufficienti)
-  - Successivamente è possibile procedere con l'implementazione di un modello di Machine Learning
+  - Nel caso l'analisi di fattibilità fosse positiva si implementa un modello di Machine Learning
+   - Per prevedere quando sarà da fare nuova sostituzione utensile dobbiamo avere abbastanza dati
