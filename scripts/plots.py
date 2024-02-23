@@ -32,7 +32,7 @@ colors = [
 def trace(fig: go.Figure, values, art: str, color: str):
     fig.add_trace(
         go.Scatter(
-            name=art + "Energy",
+            name=art + " Energy",
             x=values["TIMESTAMP"],
             y=values["EnergyConsumption"],
             text=values["EnergyConsumption"],

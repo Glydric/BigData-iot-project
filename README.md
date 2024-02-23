@@ -14,7 +14,7 @@ We firstly need to merge those files into a single file for each channel and dat
 The analysis is made using the Jupyter Notebook and pandas library
 - First of all, I need to merge the dataset into a single file
   - To do this I have to clean the dataset to prepare the merge, problems like different timestamps and different formats do not allow the data to be merged
-- Then I used a visual library like Plotly to make show the data and think on the possible analysis to do
+- Then I used a visual library named Plotly to visually show the data to think on the possible analysis
 
 Possible relations are
 - The production problems could be related to the voltage spikes or drops
