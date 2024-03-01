@@ -4,24 +4,30 @@ from .utils import getCleanDataset
 
 
 def prepareEnergy(dataset: pd.DataFrame):
-    dataset.rename(columns={"TimeStamp": "TIMESTAMP"}, inplace=True)
+    dataset.rename(
+        {
+            "TimeStamp": "TIMESTAMP",
+            "Ea_Imp": "EnergyConsumption",
+        },
+        axis=1,
+        inplace=True,
+    )
     # Removes T and Z from the timestamp to not have problems with UTC and all formats are the same
     dataset["TIMESTAMP"] = dataset["TIMESTAMP"].apply(
         lambda x: x.replace("T", " ").replace("Z", "")
     )
-    dataset["TIMESTAMP"] = pd.to_datetime(dataset["TIMESTAMP"])
-    dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("D").dt.to_timestamp()
 
-    dataset.drop(["id"], axis=1, inplace=True)
+    dataset["END_DATE"] = pd.to_datetime(dataset["TIMESTAMP"])
+    dataset["START_DATE"] = dataset["END_DATE"] - pd.Timedelta("15 min")
 
-    dataset = dataset.groupby(["TIMESTAMP"]).sum(numeric_only=True).reset_index()
+    dataset.drop(["id", "TIMESTAMP"], axis=1, inplace=True)
 
-    dataset = dataset.reset_index()
+    # dataset = dataset.groupby(["TIMESTAMP"]).sum(numeric_only=True).reset_index()
 
-    dataset.rename({"Ea_Imp": "EnergyConsumption"}, axis=1, inplace=True)
-    dataset.drop(["index"], axis=1, inplace=True)
+    # print(dataset)
+    # dataset = dataset.reset_index()
 
-    return dataset
+    return dataset.groupby(["START_DATE", "END_DATE"]).sum().reset_index()
 
 
 # Get the energy consumption values

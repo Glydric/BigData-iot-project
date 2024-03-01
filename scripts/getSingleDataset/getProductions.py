@@ -33,15 +33,23 @@ def getProductionWithFixedComma(name: str):
 
 
 def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
-    dataset["TIMESTAMP_INIZIO"] = pd.to_datetime(dataset["TIMESTAMP_INIZIO"])
-    dataset["TIMESTAMP_FINE"] = pd.to_datetime(dataset["TIMESTAMP_FINE"])
-    dataset["NUMERO_PEZZI_PROD"] = pd.to_numeric(dataset["NUMERO_PEZZI_PROD"])
+    dataset.rename(
+        {
+            "TIMESTAMP_INIZIO": "START_DATE",
+            "TIMESTAMP_FINE": "END_DATE",
+            "NUMERO_PEZZI_PROD": "Productions",
+        },
+        axis=1,
+        inplace=True,
+    )
 
-    dataset["TIMESTAMP"] = dataset[["TIMESTAMP_INIZIO", "TIMESTAMP_FINE"]].mean(axis=1)
+    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"]).dt.floor("15min")
+    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"]).dt.floor("15min")
+    dataset["Productions"] = pd.to_numeric(dataset["Productions"])
 
-    dataset.drop(["TIMESTAMP_INIZIO", "TIMESTAMP_FINE", "ID"], axis=1, inplace=True)
+    dataset.drop(["ID"], axis=1, inplace=True)
 
-    dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("D").dt.to_timestamp()
+    # dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("15min").dt.to_timestamp()
 
     # TODO review those drops
     if dataset["EXP_STATUS"].eq("0").all():
@@ -49,21 +57,12 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
 
     if "ODP" in dataset.columns:
         dataset.drop(["ODP"], axis=1, inplace=True)
-
-    dataset = (
-        dataset.groupby(["TIMESTAMP", "COD_ART"]).sum(numeric_only=True).reset_index()
-    )
-
-    dataset.rename({"NUMERO_PEZZI_PROD": "Productions"}, axis=1, inplace=True)
-
-    # this is to remove a strange column that is created on grouping
-    # dataset.drop(["COD_ART"], axis=1, inplace=True)
-
-    return dataset
+        
+    return dataset.groupby(["START_DATE", "END_DATE", "COD_ART"]).sum().reset_index()
 
 
 # Get the productions
-def getProductions(id: str, year: str, month: str, debug = False):
+def getProductions(id: str, year: str, month: str, debug=False):
     base_dir = "dataset/productions"
 
     dfs = []

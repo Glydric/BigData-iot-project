@@ -153,6 +153,8 @@ This means that the model is not able to predict the failures in our context, bu
 
 # TODO
 
+- nel timestamp Prendere il valore precedente se inizio ed il valore successivo se la fine
+- Istogram boosting (parametro poasson(poisson?) true?)
 - (opzionale) Aggiungere il tipo di materiale
 - Generare un dataset che contiene solo l'articolo e il materiale
 - Obiettivo finale: cercare di prevedere i fallimenti in base ai dati di produzione e di tensione (e magari anche in base al tipo di prodotto e di materiale)

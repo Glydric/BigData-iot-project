@@ -7,37 +7,37 @@ valid_fermate = [
     "Manutenzione ordinaria",
     "Manutenzione straordinaria",
     "Affilatura Utensile",
+    "Affilatura utensile",
     "Sostituzione utensile",
 ]
 
 
 def prepareFermate(dataset: pd.DataFrame):
     # check if shift_date is the same as shift_start, shift_end, start_date, end_date
-    assert (dataset["SHIFT_DATE"] == dataset["SHIFT_START"]).all()
-    assert (dataset["SHIFT_START"] == dataset["SHIFT_END"]).all()
-    assert (dataset["SHIFT_END"] == dataset["START_DATE"]).all()
-    assert (dataset["START_DATE"] == dataset["END_DATE"]).all()
+    assert (dataset["SHIFT_START"] == dataset["START_DATE"]).all()
+    assert (dataset["SHIFT_END"] == dataset["END_DATE"]).all()
+
+    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"]).dt.floor("15min")
+    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"]).dt.floor("15min")
 
     dataset.drop(
-        ["SHIFT_DATE", "SHIFT_START", "SHIFT_END", "START_DATE", "END_DATE"],
+        ["SHIFT_DATE", "SHIFT_START", "SHIFT_END", "SHIFT_CODE"],
         axis=1,
         inplace=True,
     )
 
-    dataset = dataset[dataset["DESFERM"].isin(valid_fermate)]
-
     # TODO check why the following data is always the same
-    if dataset["SHIFT_CODE"].diff(0).all():
-        print("WARNING, you are dropping SHIFT_CODE that is not always the same")
-        print(dataset["SHIFT_CODE"].unique())
+    # if dataset["Fermate"].diff(0).all():
+    #     print("WARNING, you are dropping SHIFT_CODE that is not always the same")
+    #     print(dataset["Fermate"].unique())
 
     if (dataset["STAGE"] != 10).all():
         print("WARNING, you are dropping STAGE that is not always the same")
         print(dataset["STAGE"].unique())
 
     # if (dataset["STOP_CODE"] != 2).all():
-        # print("WARNING, you are dropping STOP_CODE that is not always the same")
-        # print(dataset["STOP_CODE"].unique())
+    # print("WARNING, you are dropping STOP_CODE that is not always the same")
+    # print(dataset["STOP_CODE"].unique())
 
     if (dataset["QTY_SCRAP"] != 0).all():
         print("WARNING, you are dropping QTY_SCRAP that is not always the same")
@@ -47,10 +47,11 @@ def prepareFermate(dataset: pd.DataFrame):
         print("WARNING, you are dropping QTY_GOOD that is not always the same")
         print(dataset["QTY_GOOD"].unique())
 
-    dataset = dataset.groupby(["TIMESTAMP", "DESFERM"]).count().reset_index()
+    dataset = (
+        dataset.groupby(["START_DATE", "END_DATE", "DESFERM"]).count().reset_index()
+    )
 
     # we choose SHIFT_CODE but it can be any column
-    dataset.rename(columns={"SHIFT_CODE": "Fermate"}, inplace=True)
 
     dataset.drop(
         [
@@ -65,7 +66,13 @@ def prepareFermate(dataset: pd.DataFrame):
         inplace=True,
     )
 
-    return dataset
+    dataset.rename(columns={"DESFERM": "Stop"}, inplace=True)
+    # dataset = dataset.groupby(["START_DATE", "END_DATE", "DESFERM"]).count().reset_index()
+    # print(dataset.head())
+    # dataset.drop(valid_fermate, axis=0, inplace=True)
+    # print(dataset.head())
+
+    return dataset[dataset["Stop"].isin(valid_fermate)]
 
 
 # Get the stops
@@ -74,7 +81,7 @@ def getFermate(id: str, year: str, month: str):
 
     dfs = []
     # dataset = getCleanDataset(f"{base_dir}/FERMATE {year}{month}.csv")
-    for f in os.listdir(f"{base_dir}"):
+    for f in os.listdir(base_dir):
         if not f.startswith(f"FERMATE "):
             continue
         df = getCleanDataset(f"{base_dir}/{f}")
@@ -83,10 +90,6 @@ def getFermate(id: str, year: str, month: str):
         df = df[df["RESOURCE"] == int(id)]
         # remove the resource column as it is the id we are already filtered it
         df.drop("RESOURCE", axis=1, inplace=True)
-
-        df["TIMESTAMP"] = pd.to_datetime(df["SHIFT_DATE"], format="%d-%b-%y")
-        df = df[df["TIMESTAMP"].dt.strftime("%y-%m") == f"{year}-{month}"]
-
         dfs.append(df)
 
     if dfs == []:

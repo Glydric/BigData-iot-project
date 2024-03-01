@@ -38,6 +38,7 @@ def getAvailableMachines():
 
     return machines
 
+
 def cleanDataset(dataset: pd.DataFrame):
     if "COD_ART" in dataset.columns:
         dataset["COD_ART"] = dataset["COD_ART"].fillna("Unknown")
@@ -46,8 +47,9 @@ def cleanDataset(dataset: pd.DataFrame):
 
     if "DESFERM" in dataset.columns:
         dataset["DESFERM"] = dataset["DESFERM"].fillna("Unknown")
-    
+
     return dataset
+
 
 def mergeDataset(dfs: list[pd.DataFrame]):
     dataset = pd.DataFrame()
@@ -58,48 +60,55 @@ def mergeDataset(dfs: list[pd.DataFrame]):
         if dataset.empty:
             dataset = df
         else:
-            assert dataset["TIMESTAMP"].dtype == df["TIMESTAMP"].dtype
+            assert dataset["START_DATE"].dtype == df["START_DATE"].dtype
+            assert dataset["END_DATE"].dtype == df["END_DATE"].dtype
 
-            dataset = dataset.merge(df, on="TIMESTAMP", how="outer")
+            dataset = dataset.merge(df, on=["START_DATE", "END_DATE"], how="outer")
+
+    dups = dataset[dataset.duplicated(keep=False)]
+    assert dups.shape[0] == 0, dups
+    dataset["Stop"] = dataset["Stop"].fillna("Running")
 
     return dataset
 
 
-def getEntireDataset(id: int, year_int: int, month_int: int, debug = True):
+def getEntireDataset(id: int, year_int: int, month_int: int, debug=True):
     year = str(year_int)[slice(2, 4)]
     month = f"{month_int:02d}"
 
-    if (debug):
+    if debug:
         print("__Getting Fermate__")
 
     fermate = getFermate(id, year, month)
     if fermate.empty:
-        if (debug):
+        if debug:
             print("WARNING, Fermate was Empty on ", id, year, month)
         return pd.DataFrame()
 
-    if (debug):
+    if debug:
         print("__Getting Productions__")
 
     productions = getProductions(id, year, month, debug)
-
     if productions.empty:
-        if (debug):
+        if debug:
             print("WARNING, Productions was Empty on ", id, year, month)
         return pd.DataFrame()
 
-    if (debug):
+    if debug:
         print("__Getting Enegy Consumption__")
 
     energy = getEnergy(id, year, month)
     if energy.empty:
-        if (debug):
+        if debug:
             print("WARNING, Energy was Empty on ", id, year, month)
         return pd.DataFrame()
 
-    assert "TIMESTAMP" in fermate.columns
-    assert "TIMESTAMP" in productions.columns
-    assert "TIMESTAMP" in energy.columns
+    assert "END_DATE" in fermate.columns
+    assert "END_DATE" in productions.columns
+    assert "END_DATE" in energy.columns
+    assert "START_DATE" in fermate.columns
+    assert "START_DATE" in productions.columns
+    assert "START_DATE" in energy.columns
 
     return mergeDataset([fermate, productions, energy])
 

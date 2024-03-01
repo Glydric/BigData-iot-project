@@ -60,7 +60,7 @@ def trace(fig: go.Figure, values, art: str, color: str):
         go.Scatter(
             name=art + " Stops",
             x=values["TIMESTAMP"],
-            y=values["Fermate"],
+            y=values["Stop"],
             text=values["DESFERM"] if "DESFERM" in values.columns else None,
             marker=dict(size=10, color=color),
             mode="markers+lines",
@@ -72,6 +72,10 @@ def trace(fig: go.Figure, values, art: str, color: str):
 
 def plot(df, id: int = None, year: int = None, month: int = None):
     count = 0
+
+    df["START_DATE"] = pd.to_datetime(df["START_DATE"])
+    df["END_DATE"] = pd.to_datetime(df["END_DATE"])
+    df["TIMESTAMP"] = df[['START_DATE', 'END_DATE']].mean(axis=1)
 
     fig = make_subplots(
         rows=3,
