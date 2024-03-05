@@ -2,6 +2,8 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import pandas as pd
 from datetime import datetime
+import plotly.express as px
+
 
 """ path = '0301 2022-11.csv'
 df = pd.read_csv(path)
@@ -25,17 +27,22 @@ colors = [
     "#FF0000",
     "#00FFFF",
     "#FFFF00",
+    "#000088",
+    "#008800",
     "#880000",
+    "#000044",
+    "#004400",
+    "#440000",
 ]
 
 
-def trace(fig: go.Figure, values, art: str, color: str):
+def trace(fig: go.Figure, df: pd.DataFrame, tag: str, color: str):
     fig.add_trace(
         go.Scatter(
-            name=art + " Energy",
-            x=values["TIMESTAMP"],
-            y=values["EnergyConsumption"],
-            text=values["EnergyConsumption"],
+            name=tag + " Energy",
+            x=df["TIMESTAMP"],
+            y=df["EnergyConsumption"],
+            text=df["EnergyConsumption"],
             marker=dict(size=10, color=color),
             mode="markers+lines",
         ),
@@ -45,10 +52,10 @@ def trace(fig: go.Figure, values, art: str, color: str):
 
     fig.add_trace(
         go.Scatter(
-            name=art + " Productions",
-            x=values["TIMESTAMP"],
-            y=values["Productions"],
-            text=values["Productions"],
+            name=tag + " Productions",
+            x=df["TIMESTAMP"],
+            y=df["Productions"],
+            text=df["Productions"],
             marker=dict(size=10, color=color),
             mode="markers+lines",
         ),
@@ -58,24 +65,55 @@ def trace(fig: go.Figure, values, art: str, color: str):
 
     fig.add_trace(
         go.Scatter(
-            name=art + " Stops",
-            x=values["TIMESTAMP"],
-            y=values["Stop"],
-            text=values["DESFERM"] if "DESFERM" in values.columns else None,
+            name=tag + " Stops",
+            x=df["TIMESTAMP"],
+            y=df["Stop"],
+            text=df["DESFERM"] if "DESFERM" in df.columns else None,
             marker=dict(size=10, color=color),
-            mode="markers+lines",
+            mode="markers",
         ),
         col=1,
         row=2,
     )
 
 
-def plot(df, id: int = None, year: int = None, month: int = None):
+def correlation_plot(df: pd.DataFrame, id: int = None):
+    text = "Dataset"
+    if id:
+        text += f" machine {id}"
+
+    fig = go.Figure()
+    fig.update_layout(height=600, width=600, title_text=text)
+
+    fig.update_xaxes(title_text="Productions")
+    fig.update_yaxes(title_text="Energy Consumption")
+
+    count = 0
+    for mat in df["Material"].unique():
+        color = "black" if mat == "Unknown" else colors[count % len(colors)]
+        values = df[df["Material"] == mat]
+
+        count += 1
+
+        fig.add_trace(
+            go.Scatter(
+                name=mat,
+                text=str(mat),
+                x=values["Productions"],
+                y=values["EnergyConsumption"],
+                marker=dict(size=2, color=color),
+                mode="markers",
+            )
+        )
+    fig.show()
+
+
+def plot(df: pd.DataFrame, id: int = None, year: int = None, month: int = None):
     count = 0
 
     df["START_DATE"] = pd.to_datetime(df["START_DATE"])
     df["END_DATE"] = pd.to_datetime(df["END_DATE"])
-    df["TIMESTAMP"] = df[['START_DATE', 'END_DATE']].mean(axis=1)
+    df["TIMESTAMP"] = df[["START_DATE", "END_DATE"]].mean(axis=1)
 
     fig = make_subplots(
         rows=3,
@@ -86,20 +124,22 @@ def plot(df, id: int = None, year: int = None, month: int = None):
     )
 
     text = "Dataset"
-    if id :
+    if id:
         text += f" machine {id}"
     if year and month:
         text += f" - {year}/{month}"
 
     fig.update_layout(height=800, width=1280, title_text=text)
 
-    for art in df["COD_ART"].unique():
-        color = "black" if art == "Unknown" else colors[count % len(colors)]
-        values = df[df["COD_ART"] == art]
+    for mat in df["Material"].unique():
+        color = "black" if mat == "Unknown" else colors[count % len(colors)]
+        values = df[df["Material"] == mat]
 
-        trace(fig, values, str(art), color)
+        trace(fig, values, str(mat), color)
 
         count += 1
+
+    correlation_plot(fig, df)
 
     fig.show()
 
