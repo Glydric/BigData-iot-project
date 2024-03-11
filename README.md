@@ -44,7 +44,7 @@ Now some graphical examples are
 ![Machine 313](img/plot313.png)
 ![Machine 614](img/plot614.png)
 
-As we can see some machines shows a higher correlation (machine 302) between energy consumption and productions, while others didn't show any correlation at all
+As we can see some machines shows a higher correlation (machines 301 and 302) between energy consumption and productions, while others didn't show any correlation at all
 
 # Machine Learning
 
