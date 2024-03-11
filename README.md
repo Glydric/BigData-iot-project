@@ -25,24 +25,26 @@ Possible relations are
 # Feasibility analysis
 We have a milion of rows, it seems that we have enough data to make a machine learning model, but we need to check if the data is correlated.
 First of all i merged the months of the same machine to have a wider view of the lifecycle of a single machine, this allows me to better understand if a machine have enough data to be suitable for ML, some results are:
-- Machine 108, have only 1 month of incomplete data, i'll remove it
 - Machine 110, the data shows inconsistency on the stops, as sometime increases with productions and EC, sometimes decreases
 - Machine 301, at the beginning the stops do not changes the productions, then the stops follows EC, then it shows consistency and inconsistency unpredictably
 - Machine 302, sometimes the stops increases with the productions, sometimes decreases
-- Machine 303, we don't have enough data
-- Machine 304, we don't have enough data
 - Machine 306, may be interesting, in the second half, the EC sometimes is related to the stops, sometimes to the productions
-- Machine 307, we don't have enough data
-- Machine 308, we don't have enough data
-- Machine 310, we don't have enough data
-- Machine 313, if the first half the Stops leads to a decrease in EC and Productions, while on the second half this is not true
+- Machine 313, if the first half the Stops leads to a decrease in EC and Productions, while on the second half this is not true 
 - Machine 315, sometimes the stops increases with the productions and EC, sometimes decreases
 - Machine 319, sometimes the stops increases with the productions and EC, sometimes decreases
 - Machine 515, sometimes the stops increases with the productions and EC, sometimes decreases
 - Machine 610, sometimes the stops increases with the productions and EC, sometimes decreases
 - ...
 
-At the end I used Pearson correlation to compute the correlations, most of the machines are well correlated.
+Now some graphical examples are
+
+![Machine 301](img/plot301.png)
+![Machine 302](img/plot302.png)
+![Machine 306](img/plot306.png)
+![Machine 313](img/plot313.png)
+![Machine 614](img/plot614.png)
+
+As we can see some machines shows a higher correlation (machine 302) between energy consumption and productions, while others didn't show any correlation at all
 
 # Machine Learning
 

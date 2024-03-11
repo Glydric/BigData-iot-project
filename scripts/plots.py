@@ -82,6 +82,9 @@ def correlation_plot(df: pd.DataFrame, id: int = None):
     if id:
         text += f" machine {id}"
 
+    df.drop(df[df["Productions"] <= 0].index, inplace=True)
+    df.drop(df[df["EnergyConsumption"] <= 0].index, inplace=True)
+
     fig = go.Figure()
     fig.update_layout(height=600, width=600, title_text=text)
 
