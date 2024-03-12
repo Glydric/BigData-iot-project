@@ -56,3 +56,10 @@ Then I tried to use a classification algorithm to predict if and when we will ha
 
 ## Spark and MLlib
 At the end I implemented a spark application to do a MLlib task using a Gradient Boosted Tree Classifier and the results are really good, with an accuracy of 92%, but it can only predict if we have a stop or not, not the type of stop.
+
+# TODO
+- [x] per le fermate che superano i 15min crea nuove righe con la stessa fermata (una riga di 45 min la dividiamo in 3 righe di 15 min)
+- [x] produzioni in base unitaria al minuto facendo la media in base a quanti minuti intercorrono tra i due timestamp (START_DATE, END_DATE) per poi riportarlo a 15 min
+- [ ] basa il time series sul quarto d'ora più vicino anzichè su quello precedente
+- [ ] Fix importante, nel dataset alcune volte abbiamo dati in file con timestamp sbagliati (esempio nella macchina 309 per il 2022-11-28 10:15 abbiamo due dati in cui uno ha produzioni e materiale ma non energia consumata, probabilmente in questo caso le produzioni si trovavano in un altro file rispetto al timestamp che ci aspettavamo). questo provoca il codice a fare una concatenazione nell'iterazione 2, basandosi sulla presunzione che i dati non siano "doppi"
+Per risolvere questo problema potremmo fare un merge, ma questo da errore perchè genera più colonne per qualche motivo

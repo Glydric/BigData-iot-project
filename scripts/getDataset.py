@@ -39,18 +39,6 @@ def getAvailableMachines():
     return machines
 
 
-def cleanDataset(dataset: pd.DataFrame):
-    if "COD_ART" in dataset.columns:
-        dataset["COD_ART"] = dataset["COD_ART"].fillna("Unknown")
-    else:
-        dataset["COD_ART"] = "Unknown"
-
-    if "DESFERM" in dataset.columns:
-        dataset["DESFERM"] = dataset["DESFERM"].fillna("Unknown")
-
-    return dataset
-
-
 def mergeDataset(dfs: list[pd.DataFrame]):
     dataset = pd.DataFrame()
 
@@ -114,9 +102,16 @@ def getEntireDataset(id: int, year_int: int, month_int: int, debug=True):
 
 
 def forEveryMachine(fn):
+    for machineId, year, month in getList():
+        fn(machineId, year, month)
+
+def getList():
     machines = getAvailableMachines()
 
+    list = []
     for machineId in machines:
         for year in machines[machineId].keys():
             for month in machines[machineId][year]:
-                fn(machineId, year, month)
+                list.append((machineId, year, month))
+    
+    return list

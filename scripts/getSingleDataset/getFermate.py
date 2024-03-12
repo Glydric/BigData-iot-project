@@ -11,20 +11,7 @@ valid_fermate = [
     "Sostituzione utensile",
 ]
 
-
-def prepareFermate(dataset: pd.DataFrame):
-    # check if shift_date is the same as shift_start, shift_end, start_date, end_date
-    assert (dataset["SHIFT_START"] == dataset["START_DATE"]).all()
-    assert (dataset["SHIFT_END"] == dataset["END_DATE"]).all()
-
-    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"]).dt.floor("15min")
-    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"]).dt.floor("15min")
-
-    dataset.drop(
-        ["SHIFT_DATE", "SHIFT_START", "SHIFT_END", "SHIFT_CODE"],
-        axis=1,
-        inplace=True,
-    )
+def drops(dataset: pd.DataFrame):
 
     # TODO check why the following data is always the same
     # if dataset["Fermate"].diff(0).all():
@@ -47,14 +34,15 @@ def prepareFermate(dataset: pd.DataFrame):
         print("WARNING, you are dropping QTY_GOOD that is not always the same")
         print(dataset["QTY_GOOD"].unique())
 
-    dataset = (
-        dataset.groupby(["START_DATE", "END_DATE", "DESFERM"]).count().reset_index()
-    )
-
     # we choose SHIFT_CODE but it can be any column
 
     dataset.drop(
         [
+            "SHIFT_DATE",
+            "SHIFT_START",
+            "SHIFT_END",
+            "SHIFT_CODE",
+             
             "PRODUCTION_ORDER",
             "STAGE",
             "STOP_CODE",
@@ -66,11 +54,49 @@ def prepareFermate(dataset: pd.DataFrame):
         inplace=True,
     )
 
+    return dataset
+
+def prepareFermate(dataset: pd.DataFrame):
+    # check if shift_date is the same as shift_start, shift_end, start_date, end_date
+    assert (dataset["SHIFT_START"] == dataset["START_DATE"]).all()
+    assert (dataset["SHIFT_END"] == dataset["END_DATE"]).all()
+
+    dataset = drops(dataset)
+
+    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"]).dt.floor("15min")
+    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"]).dt.floor("15min")
     dataset.rename(columns={"DESFERM": "Stop"}, inplace=True)
-    # dataset = dataset.groupby(["START_DATE", "END_DATE", "DESFERM"]).count().reset_index()
-    # print(dataset.head())
-    # dataset.drop(valid_fermate, axis=0, inplace=True)
-    # print(dataset.head())
+
+    time_interval = dataset["END_DATE"] - dataset["START_DATE"]
+    time_interval = time_interval.dt.total_seconds() / 60 / 15
+
+    dataset.drop(["END_DATE"], axis=1, inplace=True)
+
+    dataset = dataset.loc[dataset.index.repeat(time_interval)]
+
+    total_number = time_interval.sum()
+    assert total_number == dataset.shape[0], f"{total_number} {dataset.shape[0]}"
+
+    # --- Porta al quarto d'ora
+    # Group by 'START_DATE' and generate a sequence of minutes for each group
+    minutes_to_add = dataset.groupby("START_DATE").cumcount()
+
+    # Convert the sequence of minutes to a timedelta and add it to 'START_DATE'
+    dataset["START_DATE"] = dataset["START_DATE"] + pd.to_timedelta(
+        minutes_to_add, unit="m"
+    )
+
+    dataset["START_DATE"] = dataset["START_DATE"].dt.floor("15min")
+    dataset = (
+        dataset.groupby(["START_DATE", "Stop"])
+        .sum(numeric_only=True)
+        .reset_index()
+        .head(50)
+    )
+
+    dataset["END_DATE"] = dataset["START_DATE"] + pd.Timedelta("15min")
+
+    dataset = dataset.groupby(["START_DATE", "END_DATE", "Stop"]).count().reset_index()
 
     return dataset[dataset["Stop"].isin(valid_fermate)]
 

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from .utils import cleanDataset, getCleanDataset
+import numpy as np
 
 
 def productionFixComma(line: str, columns: int):
@@ -32,6 +33,50 @@ def getProductionWithFixedComma(name: str):
         return cleanDataset(df)
 
 
+def handleDate(dataset: pd.DataFrame):
+    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"])
+    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"])
+
+    time_interval = dataset["END_DATE"] - dataset["START_DATE"]
+    dataset.drop(["END_DATE"], axis=1, inplace=True)
+
+    # Porta al minuto
+    time_interval = time_interval.dt.total_seconds() / 60
+    dataset["Productions"] = dataset["Productions"] / time_interval
+
+    # Duplicate the rows in base of the time interval
+    dataset = dataset.loc[dataset.index.repeat(time_interval)]
+
+    # --- Porta al quarto d'ora
+
+    # Group by 'START_DATE' and generate a sequence of minutes for each group
+    minutes_to_add = dataset.groupby("START_DATE").cumcount()
+
+    # Convert the sequence of minutes to a timedelta and add it to 'START_DATE'
+    dataset["START_DATE"] = dataset["START_DATE"] + pd.to_timedelta(
+        minutes_to_add, unit="m"
+    )
+
+    total_number = time_interval.sum()
+    assert total_number == dataset.shape[0], f"{total_number} {dataset.shape[0]}"
+
+    dataset["START_DATE"] = dataset["START_DATE"].dt.floor("15min")
+    dataset = (
+        dataset
+        .groupby(["START_DATE", "COD_ART"])
+        .sum(numeric_only=True)
+        .reset_index()
+        .head(50)
+    )
+
+    assert not dataset.isna()["COD_ART"].any(), dataset.isna()["COD_ART"].any()
+    assert "COD_ART" in dataset.columns
+
+    dataset["END_DATE"] = dataset["START_DATE"] + pd.Timedelta("15min")
+
+    return dataset
+
+
 def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
     dataset.rename(
         {
@@ -43,21 +88,18 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
         inplace=True,
     )
 
-    dataset["START_DATE"] = pd.to_datetime(dataset["START_DATE"]).dt.floor("15min")
-    dataset["END_DATE"] = pd.to_datetime(dataset["END_DATE"]).dt.floor("15min")
+    dataset.drop(["ID"], axis=1, inplace=True)
     dataset["Productions"] = pd.to_numeric(dataset["Productions"])
 
-    dataset.drop(["ID"], axis=1, inplace=True)
-
-    # dataset["TIMESTAMP"] = dataset["TIMESTAMP"].dt.to_period("15min").dt.to_timestamp()
-
     # TODO review those drops
-    if dataset["EXP_STATUS"].eq("0").all():
+    if "EXP_STATUS" in dataset.columns and dataset["EXP_STATUS"].eq("0").all():
         dataset.drop("EXP_STATUS", axis=1, inplace=True)
 
     if "ODP" in dataset.columns:
         dataset.drop(["ODP"], axis=1, inplace=True)
-        
+
+    dataset = handleDate(dataset)
+
     return dataset.groupby(["START_DATE", "END_DATE", "COD_ART"]).sum().reset_index()
 
 

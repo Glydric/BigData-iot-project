@@ -25,7 +25,6 @@ def prepareEnergy(dataset: pd.DataFrame):
     # dataset = dataset.groupby(["TIMESTAMP"]).sum(numeric_only=True).reset_index()
 
     # print(dataset)
-    # dataset = dataset.reset_index()
 
     return dataset.groupby(["START_DATE", "END_DATE"]).sum().reset_index()
 
