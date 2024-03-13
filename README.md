@@ -46,6 +46,12 @@ Now some graphical examples are
 
 As we can see some machines shows a higher correlation (machines 301 and 302) between energy consumption and productions, while others didn't show any correlation at all
 
+We can also show what happens near the stops
+![Machine 303](img/timeplot303_small.png)
+![Machine 614](img/timeplot614_small.png)
+
+In the latter we can see that we have an increase of productions before the stop
+
 # Machine Learning
 
 ## Linear Model
@@ -60,6 +66,5 @@ At the end I implemented a spark application to do a MLlib task using a Gradient
 # TODO
 - [x] per le fermate che superano i 15min crea nuove righe con la stessa fermata (una riga di 45 min la dividiamo in 3 righe di 15 min)
 - [x] produzioni in base unitaria al minuto facendo la media in base a quanti minuti intercorrono tra i due timestamp (START_DATE, END_DATE) per poi riportarlo a 15 min
+- [x] Fix importante, nel dataset alcune volte abbiamo dati in file con timestamp sbagliati (esempio nella macchina 309 per il 2022-11-28 10:15 abbiamo due dati in cui uno ha produzioni e materiale ma non energia consumata, probabilmente in questo caso le produzioni si trovavano in un altro file rispetto al timestamp che ci aspettavamo). questo provoca il codice a fare una concatenazione nell'iterazione 2, basandosi sulla presunzione che i dati non siano "doppi". Per risolvere questo problema potremmo fare un merge, ma questo da errore perchè genera più colonne per qualche motivo
 - [ ] basa il time series sul quarto d'ora più vicino anzichè su quello precedente
-- [ ] Fix importante, nel dataset alcune volte abbiamo dati in file con timestamp sbagliati (esempio nella macchina 309 per il 2022-11-28 10:15 abbiamo due dati in cui uno ha produzioni e materiale ma non energia consumata, probabilmente in questo caso le produzioni si trovavano in un altro file rispetto al timestamp che ci aspettavamo). questo provoca il codice a fare una concatenazione nell'iterazione 2, basandosi sulla presunzione che i dati non siano "doppi"
-Per risolvere questo problema potremmo fare un merge, ma questo da errore perchè genera più colonne per qualche motivo
