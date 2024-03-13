@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 
 def cleanDataset(df: pd.DataFrame):
@@ -30,3 +31,14 @@ def replaceWithUnknown(dataset: pd.DataFrame):
         dataset["Stop"] = dataset["Stop"].fillna("Unknown")
 
     return dataset
+
+
+def takeRange(df: pd.DataFrame, range: int):
+    idx = df.index.get_indexer_for(df[df["Stop"] != "Running"].index)
+    return df.iloc[
+        np.unique(
+            np.concatenate(
+                [np.arange(max(i - range, 0), min(i + range + 1, len(df))) for i in idx]
+            )
+        )
+    ]
