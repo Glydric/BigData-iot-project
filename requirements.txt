@@ -1,3 +1,4 @@
 plotly==5.18.0
 pandas==2.2.0
 jupyterlab==4.1.2
+pyspark==3.5.1

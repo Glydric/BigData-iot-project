@@ -4,16 +4,15 @@ This project is about data analysis, a machine generates data A, B, and C the da
 
 # Requirements
 ## Versions and installs
-Python 3.11.6
-
-pip 24.0
+- Python 3.11.6
+- pip 24.0
 
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Download Dataset
-Download the zip folder [Dataset](https://unicamit-my.sharepoint.com/:u:/g/personal/dtmassimo_callisto_unicam_it/Ea_sngfV6UtGmQmpqW_IzLMBmHu72S3buS-znskjszUimw?e=dNORZx), extract it and put into the `dataset` folder in the root of the project.
+Download the zip folder [Dataset](https://unicamit-my.sharepoint.com/:u:/g/personal/dtmassimo_callisto_unicam_it/Ea_sngfV6UtGmQmpqW_IzLMBmHu72S3buS-znskjszUimw?e=dNORZx), extract and put into the `dataset` folder in the root of the project.
 
 # Dataset
 
