@@ -13,7 +13,7 @@ valid_fermate = [
 
 def drops(dataset: pd.DataFrame):
 
-    # TODO check why the following data is always the same
+    # why the following data is always the same
     # if dataset["Fermate"].diff(0).all():
     #     print("WARNING, you are dropping SHIFT_CODE that is not always the same")
     #     print(dataset["Fermate"].unique())

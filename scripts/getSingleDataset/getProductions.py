@@ -91,7 +91,6 @@ def prepareProductions(dataset: pd.DataFrame, year: int, month: int):
     dataset.drop(["ID"], axis=1, inplace=True)
     dataset["Productions"] = pd.to_numeric(dataset["Productions"])
 
-    # TODO review those drops
     if "EXP_STATUS" in dataset.columns and dataset["EXP_STATUS"].eq("0").all():
         dataset.drop("EXP_STATUS", axis=1, inplace=True)
 
