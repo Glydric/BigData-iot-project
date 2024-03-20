@@ -16,8 +16,6 @@ This project is about data analysis, a machine generates data A, B, and C the da
    - [Spark and MLlib](#spark-and-mllib)
 
 
-
-
 # Requirements
 ## Versions and installs
 - Python 3.11.6
@@ -31,7 +29,6 @@ pip install -r requirements.txt
 Download the zip folder [Dataset](https://unicamit-my.sharepoint.com/:u:/g/personal/dtmassimo_callisto_unicam_it/Ea_sngfV6UtGmQmpqW_IzLMBmHu72S3buS-znskjszUimw?e=dNORZx), extract and put into the `dataset` folder in the root of the project.
 
 # Dataset
-
 The dataset is formed by
 
 - Energy Consumption, small files in the form of energy/location*Tormatic_channel*{id}...csv
@@ -40,7 +37,6 @@ The dataset is formed by
   We firstly need to merge those files into a single file for each channel and date
 
 ## Dataset analysis
-
 The analysis is made using the Jupyter Notebook and pandas library
 - First of all, I need to merge the dataset into a single file
   - To do this I have to clean the dataset to prepare the merge, problems like different timestamps and different formats do not allow the data to be merged
@@ -62,7 +58,7 @@ First of all i merged the months of the same machine to have a wider view of the
 - Machine 319, sometimes the stops increases with the productions and EC, sometimes decreases
 - Machine 515, sometimes the stops increases with the productions and EC, sometimes decreases
 - Machine 610, sometimes the stops increases with the productions and EC, sometimes decreases
-- ...
+- Etc.
 
 Now some graphical examples are
 
