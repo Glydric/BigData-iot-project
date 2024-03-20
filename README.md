@@ -2,6 +2,22 @@
 
 This project is about data analysis, a machine generates data A, B, and C the data analyzed, then it is stored in a database, and finally visualized.
 
+<!-- 1. [BigData-iot-project](#bigdata-iot-project) -->
+### Table of Contents
+1. [Requirements](#requirements)
+   - [Versions and installs](#versions-and-installs)
+   - [Download Dataset](#download-dataset)
+2. [Dataset](#dataset)
+   - [Dataset analysis](#dataset-analysis)
+   - [Feasibility analysis](#feasibility-analysis)
+3. [Machine Learning](#machine-learning)
+   - [Linear Model](#linear-model)
+   - [Classification Model](#classification-model)
+   - [Spark and MLlib](#spark-and-mllib)
+
+
+
+
 # Requirements
 ## Versions and installs
 - Python 3.11.6
@@ -34,7 +50,7 @@ Possible relations are
 - The production problems could be related to the voltage spikes or drops
 - Problems/productions rate
 
-# Feasibility analysis
+## Feasibility analysis
 We have a milion of rows, it seems that we have enough data to make a machine learning model, but we need to check if the data is correlated.
 First of all i merged the months of the same machine to have a wider view of the lifecycle of a single machine, this allows me to better understand if a machine have enough data to be suitable for ML, some results are:
 - Machine 110, the data shows inconsistency on the stops, as sometime increases with productions and EC, sometimes decreases
