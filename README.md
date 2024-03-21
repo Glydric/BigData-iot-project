@@ -36,6 +36,29 @@ The dataset is formed by
 - Stops, a big files in the form of fermi/FERMATE\ YYMM.csv - The names are made of YY (year) and MM (month)
   We firstly need to merge those files into a single file for each channel and date
 
+## Data cleaning
+The data is not clean, as the timestamps are not consistent, so we need to clean the data to merge them.
+- Energy consumptions are saved every 15 minutes
+- Productions are saved in unpredictable timestamps
+- Stops are saved when the machine stops, so the timestamp is unpredictable
+
+The first objective is to convert every data into a single timestamp format. So I choose to convert Productions and Stops every 15 minutes
+- Productions
+   1. First I calculate the time interval between start and end (example: 20 minutes)
+   2. I divide the productions by the time interval (minutes) to have the mean production for each minute. (example: 40/20=2 productions per minute)
+   3. I duplicate the same row for each minute. (example: 20 rows with 2 productions each and the same timestamp)
+   4. I use cumcount() function to transform a dataset from [2,4,5] to [1,2,1,2,3,4,1,2,3,4,5], this allow me to understand how many minutes to add to each row of the timestamp
+   5. I add the increasing number of minutes to the timestamp
+   6. I group and sum the productions for each 15 minutes
+- Stops, it is similar to the productions but here we don't have to deal with summing the data as we choose to simply duplicate the rows for each 15 minutes that are in the timestamp. Example: if we have a stop from 10:05 to 10:50, I will duplicate the same row for 3 times
+   1. First I calculate the time interval between start and end (example: 45 minutes)
+   2. I compute how many quarters are in the time interval (example: 45/15=3)
+   3. I duplicate the same row for each quarter. (example: 3 rows with the same timestamp)
+   4. I use cumcount() function to understand how many quarters to add to each row of the timestamp (example: [2] to [0,1,2])
+   5. I transform the rows to the 15 minutes previous to the stop (example: 10:05 to 10:00, 10:20 to 10:15, 10:35 to 10:30)
+   6. I add the increasing number of quarters to the timestamp multiplied by 15 (example: [10:00,10:00,10:00] to [10:00,10:15,10:30])
+
+
 ## Dataset analysis
 The analysis is made using the Jupyter Notebook and pandas library
 - First of all, I need to merge the dataset into a single file
